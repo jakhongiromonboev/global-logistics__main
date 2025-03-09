@@ -3,54 +3,75 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shakha's Logistics Page</title>
+    <title>Jakhongir's Global Logistics Page</title>
     <style>
       body {
         font-family: Arial, sans-serif;
-        background-color: cornsilk;
+        background-color: aliceblue;
         text-align: center;
         margin: 0;
         padding: 0;
       }
 
-      .header {
-        background-image: url("https://github.com/jakhongiromonboev/global-logistics__main/blob/main/ff_logistics_001_misc_1920x1280.jpg?raw=true");
-        background-repeat: no-repeat;
-        background-size: cover;
+      .main-header {
+        position: relative;
         width: 100%;
-        height: 300px;
-        color: white;
-        padding: 50px 0;
-        font-size: 32px;
-        font-weight: bold;
-        height: 100px;
-        align-items: center;
+        height: 200px;
+        overflow: hidden;
       }
+
+      .main-header img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .main-header h1 {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: black;
+        background: rgba(255, 255, 255, 0.949);
+        font-size: 36px;
+        font-weight: bold;
+        padding: 10px 20px;
+        border-radius: 10px;
+      }
+
       .nav-links {
         margin: 20px 0;
-        margin-top: 40px;
+        margin-top: 50px;
       }
       .nav-links a {
-        margin: 0 15px;
+        border: 1px solid white;
+        border-radius: 0.5rem;
+        margin: 0 25px;
         text-decoration: none;
         font-size: 18px;
-        color: #333;
+        background-color: #007bff;
+        color: white;
         font-weight: bold;
-        padding: 30px;
+        padding: 20px;
       }
       .nav-links a:hover {
-        color: #007bff;
+        opacity: 0.5;
       }
     </style>
   </head>
   <body>
-    <div class="header">Shakha's Logistics Page</div>
+    <div class="main-header">
+      <img
+        src="./images_to_learn/logistics-header-1920x1280.webp"
+        alt="the banner"
+      />
+      <h1>Jakhongir's Global Logistics Page</h1>
+    </div>
     <div class="nav-links">
-      <a href="#home">Assignment</a>
-      <a href="#services">Assignment</a>
-      <a href="#about">Assignment</a>
-      <a href="#contact">Contact</a>
-      <a href="#">About Logistics</a>
+      <a href="#home">Assignment 1</a>
+      <a href="#services">Assignment 2</a>
+      <a href="#about">Assignment 3</a>
+      <a href="#contact">Assignment 4</a>
     </div>
   </body>
 </html>
