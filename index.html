@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jakhongir's Global Logistics Page</title>
     <style>
-      /* Global styles */
+      .container {
+        width: 1140px;
+        margin: 0 auto;
+      }
+
       body {
         font-family: Arial, sans-serif;
         background-color: aliceblue;
@@ -15,91 +19,96 @@
       }
 
       .main-header {
-        position: relative;
         width: 100%;
-        height: 200px;
+        height: 40vh;
         overflow: hidden;
+      }
+
+      .main-header__title {
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        text-decoration: solid;
+        line-height: 3.125rem;
       }
 
       .main-header img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-      }
-
-      .main-header h1 {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: black;
-        background: rgba(255, 255, 255, 0.949);
-        font-size: 36px;
-        font-weight: bold;
-        padding: 10px 20px;
+        box-shadow: 0px 3px 16px 0px rgb(0, 0, 0 / 10%);
         border-radius: 10px;
       }
-
-      .nav-links {
-        margin: 20px 0;
-        margin-top: 50px;
+      .main-header img:hover {
+        transition: transform 0.1s ease-in-out, filter 0.1 ease;
+        transform: scale(1.1);
       }
-
+      .nav-links {
+        margin: 1.25rem 0;
+        margin-top: 3.125rem;
+        margin-bottom: 4rem;
+      }
       .nav-links a {
         border: 1px solid white;
         border-radius: 0.5rem;
-        margin: 0 25px;
+        margin: 0 1.57rem;
         text-decoration: none;
-        font-size: 18px;
+        font-size: 1.125rem;
         background-color: #007bff;
         color: white;
         font-weight: bold;
-        padding: 20px;
+        padding: 1.25rem;
       }
 
       .nav-links a:hover {
         opacity: 0.5;
       }
 
-      /* Media query for smaller screens */
-      @media only screen and (max-width: 768px) {
-        .container {
-          width: 95%;
-          margin: auto;
-        }
+      .footer {
+        background-color: rgba(35, 33, 33, 0.823);
+        color: white;
+        border-radius: 10px;
+        width: 100%;
+        padding: 1.25rem;
+      }
 
-        .main-header {
-          height: 150px; /* Smaller header for mobile */
-        }
+      .footer-info {
+        text-align: left;
+        letter-spacing: 0.19rem;
+      }
 
-        .main-header h1 {
-          font-size: 24px; /* Smaller text for mobile */
-          padding: 5px 10px; /* Adjust padding */
-        }
-
-        .nav-links a {
-          margin: 10px; /* Less margin between links */
-          padding: 15px; /* Smaller padding */
-          font-size: 16px; /* Smaller font size */
-        }
+      .footer-info h4 {
+        letter-spacing: 0.25rem;
+        text-transform: uppercase;
+        text-decoration: solid;
       }
     </style>
   </head>
-  <body>
-    <div class="container">
+  <div class="container">
+    <body>
       <div class="main-header">
         <img
-          src="https://raw.githubusercontent.com/jakhongiromonboev/global-logistics__main/refs/heads/main/logistics-header-1920x1280.webp"
+          src="./images_to_learn/logistics-header-1920x1280.webp"
           alt="the banner"
         />
+      </div>
+      <div class="main-header__title">
         <h1>Jakhongir's Global Logistics Page</h1>
       </div>
       <div class="nav-links">
-        <a href="#home">Assignment 1</a>
-        <a href="#services">Assignment 2</a>
-        <a href="#about">Assignment 3</a>
-        <a href="#contact">Assignment 4</a>
+        <a href="#">Assignment 1</a>
+        <a href="#">Assignment 2</a>
+        <a href="#">Assignment 3</a>
+        <a href="#">Assignment 4</a>
       </div>
-    </div>
-  </body>
+      <footer class="footer">
+        <hr />
+        <div class="footer-elements">
+          <div class="footer-info">
+            <h4>Author:Jakhongir</h4>
+            <b><i>&copy;Copyright reserved 2025</i></b>
+          </div>
+        </div>
+      </footer>
+    </body>
+  </div>
 </html>
