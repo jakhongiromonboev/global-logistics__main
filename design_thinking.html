@@ -548,44 +548,45 @@
         </div>
     </div>
 
-    <script>
-        // Create animated stars background
-        function createStars() {
-            const starsContainer = document.getElementById('stars');
-            const numStars = 100;
-            
-            for (let i = 0; i < numStars; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.animationDelay = Math.random() * 3 + 's';
-                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                starsContainer.appendChild(star);
-            }
-        }
+   <script>
+    // Create animated stars background
+    function createStars() {
+        const starsContainer = document.getElementById('stars');
+        const numStars = 100;
 
-        // Smooth scrolling for better UX
-        document.addEventListener('DOMContentLoaded', function() {
-            createStars();
-            
-            // Add scroll-triggered animations
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            });
-            
-            document.querySelectorAll('.phase').forEach(phase => {
-                phase.style.opacity = '0';
-                phase.style.transform = 'translateY(20px)';
-                phase.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                observer.observe(phase);
+        for (let i = 0; i < numStars; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            starsContainer.appendChild(star);
+        }
+    }
+
+    // Smooth scrolling and intersection animations
+    document.addEventListener('DOMContentLoaded', function () {
+        createStars(); // Only call once here
+
+        // Scroll-triggered animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
             });
         });
-    </script>
+
+        document.querySelectorAll('.phase').forEach(phase => {
+            phase.style.opacity = '0';
+            phase.style.transform = 'translateY(20px)';
+            phase.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(phase);
+        });
+    });
+</script>
+
 </body>
 </html>
