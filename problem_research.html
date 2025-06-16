@@ -1,51 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Logistics Challenge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reverse Logistics Challenge</title>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #e0f7fa, #e1bee7);
+      background: linear-gradient(to right, #e0eafc, #cfdef3);
       color: #333;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      overflow: hidden;
     }
 
     .container {
-      width: 95%;
-      max-width: 960px;
-      background: #fff;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-      overflow: hidden;
-      position: relative;
-      transition: transform 0.3s ease-in-out;
+      width: 90%;
+      max-width: 800px;
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      transition: all 0.5s ease-in-out;
     }
 
     .slide {
       display: none;
-      opacity: 0;
-      transform: translateX(30px);
-      transition: all 0.6s ease-in-out;
-      position: absolute;
-      width: 100%;
+      animation: fadeIn 0.6s ease-in-out;
     }
 
     .slide.active {
       display: block;
-      opacity: 1;
-      transform: translateX(0);
     }
 
     h1, h2 {
-      color: #4a148c;
+      color: #2a5d8f;
     }
 
     p, ul {
@@ -54,182 +46,155 @@
     }
 
     ul {
-      padding-left: 1.5rem;
-    }
-
-    .button-group {
-      margin-top: 30px;
+      padding-left: 20px;
     }
 
     button {
-      background-color: #7b1fa2;
-      color: #fff;
+      background-color: #2a5d8f;
+      color: white;
       border: none;
-      padding: 12px 24px;
-      margin: 5px;
-      border-radius: 6px;
+      padding: 12px 20px;
+      margin: 15px 10px 0 0;
+      border-radius: 8px;
       font-size: 1rem;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: background 0.3s ease;
     }
 
     button:hover {
-      background-color: #4a0072;
+      background-color: #1c4265;
     }
 
     a {
-      color: #00796b;
+      color: #2a5d8f;
+      text-decoration: none;
     }
 
     a:hover {
       text-decoration: underline;
     }
 
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+
     @media (max-width: 600px) {
       .container {
-        padding: 30px 20px;
-      }
-
-      .button-group {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
+        padding: 20px;
       }
 
       button {
         width: 100%;
+        margin-top: 10px;
       }
     }
   </style>
 </head>
-
 <body>
   <div class="container">
     <div class="slide active" id="slide1">
       <h1>Reverse Logistics Challenge</h1>
-      <p>Welcome! Explore the path products take after the point of sale—returns, repairs, recycling, and more.</p>
-      <div class="button-group">
-        <button onclick="nextSlide()">Start</button>
-      </div>
+      <p>Welcome! Discover how reverse logistics helps manage returns, repairs, recycling, and product life cycles. Click Start to begin your journey through the supply chain.</p>
+      <button onclick="nextSlide()">Start</button>
     </div>
 
     <div class="slide" id="slide2">
-      <h2>Understanding Reverse Logistics</h2>
-      <p>It refers to processes where goods move from customers back to sellers or manufacturers. This includes returns, warranties, recycling, and disposal.</p>
-      <ul>
-        <li>Product returns</li>
-        <li>Repackaging and reselling</li>
-        <li>Recycling and waste management</li>
-      </ul>
-      <div class="button-group">
-        <button onclick="prevSlide()">Back</button>
-        <button onclick="nextSlide()">Next</button>
-      </div>
+      <h2>What is Reverse Logistics?</h2>
+      <p>Reverse logistics refers to processes that move products from customers back to the business. These include returns, refurbishment, recycling, and disposal of goods.</p>
+      <p>It’s essential for sustainability, customer satisfaction, and cost-efficiency.</p>
+      <button onclick="prevSlide()">Back</button>
+      <button onclick="nextSlide()">Next</button>
     </div>
 
     <div class="slide" id="slide3">
-      <h2>Case Study: Electronics Industry</h2>
-      <p>60% of returned electronics work perfectly. Sorting errors lead to waste and lost revenue.</p>
+      <h2>Case Study: Electronics</h2>
+      <p>Over 60% of returned electronics are not defective. Better diagnostics and AI sorting could save millions and reduce waste.</p>
       <ul>
-        <li>Use of AI for defect detection</li>
-        <li>Refurbishment and reselling programs</li>
-        <li>E-waste management compliance</li>
+        <li>Use smart kiosks to assess product condition</li>
+        <li>Minimize unnecessary returns with better product descriptions</li>
       </ul>
-      <div class="button-group">
-        <button onclick="prevSlide()">Back</button>
-        <button onclick="nextSlide()">Next</button>
-      </div>
+      <button onclick="prevSlide()">Back</button>
+      <button onclick="nextSlide()">Next</button>
     </div>
 
     <div class="slide" id="slide4">
-      <h2>Retail Returns Challenge</h2>
-      <p>Free return policies increase returns. Companies must balance customer satisfaction and costs.</p>
+      <h2>Case Study: Retail</h2>
+      <p>Free returns drive customer satisfaction but increase costs and emissions. Retailers must balance convenience and sustainability.</p>
       <ul>
-        <li>Predictive analytics to minimize returns</li>
-        <li>Clear sizing guides</li>
-        <li>Restocking and donation programs</li>
+        <li>Encourage in-store returns</li>
+        <li>Offer incentives for keeping items</li>
+        <li>Use eco-friendly return packaging</li>
       </ul>
-      <div class="button-group">
-        <button onclick="prevSlide()">Back</button>
-        <button onclick="nextSlide()">Next</button>
-      </div>
+      <button onclick="prevSlide()">Back</button>
+      <button onclick="nextSlide()">Next</button>
     </div>
 
     <div class="slide" id="slide5">
-      <h2>Performance Metrics</h2>
+      <h2>Metrics Dashboard</h2>
       <ul>
-        <li>Return Rate: <strong>15%</strong></li>
-        <li>Recycling Efficiency: <strong>68%</strong></li>
-        <li>Repair Success Rate: <strong>80%</strong></li>
-        <li>Customer Satisfaction: <strong>90%</strong></li>
-        <li>Environmental Impact Reduction: <strong>25%</strong></li>
+        <li><strong>Return Rate:</strong> 15%</li>
+        <li><strong>Recycling Efficiency:</strong> 68%</li>
+        <li><strong>Repair Success Rate:</strong> 80%</li>
+        <li><strong>Customer Satisfaction:</strong> 92%</li>
       </ul>
-      <div class="button-group">
-        <button onclick="prevSlide()">Back</button>
-        <button onclick="nextSlide()">Next</button>
-      </div>
+      <button onclick="prevSlide()">Back</button>
+      <button onclick="nextSlide()">Next</button>
     </div>
 
     <div class="slide" id="slide6">
-      <h2>Smart Solutions</h2>
+      <h2>Innovative Solutions</h2>
       <ul>
-        <li>Automated return kiosks in stores</li>
-        <li>Repair incentives for customers</li>
-        <li>Product design for easy disassembly</li>
-        <li>Blockchain for tracking returns</li>
+        <li>AI-powered sorting systems</li>
+        <li>Designing for disassembly</li>
+        <li>Blockchain tracking for product life cycles</li>
+        <li>Third-party reverse logistics providers</li>
       </ul>
-      <div class="button-group">
-        <button onclick="prevSlide()">Back</button>
-        <button onclick="nextSlide()">Next</button>
-      </div>
+      <button onclick="prevSlide()">Back</button>
+      <button onclick="nextSlide()">Next</button>
     </div>
 
     <div class="slide" id="slide7">
-      <h2>Resources & Further Reading</h2>
+      <h2>Learn More</h2>
       <ul>
         <li><a href="#">Whitepaper: Circular Supply Chains</a></li>
-        <li><a href="#">Report: AI in Reverse Logistics</a></li>
-        <li><a href="#">Guide: Return Policy Optimization</a></li>
+        <li><a href="#">Report: Return Optimization Strategies</a></li>
+        <li><a href="#">Tool: Reverse Logistics Cost Calculator</a></li>
       </ul>
-      <div class="button-group">
-        <button onclick="prevSlide()">Back</button>
-      </div>
+      <button onclick="prevSlide()">Back</button>
+      <button onclick="restart()">Restart</button>
     </div>
   </div>
 
   <script>
-    let current = 0;
+    let currentSlide = 0;
     const slides = document.querySelectorAll('.slide');
 
     function showSlide(index) {
       slides.forEach((slide, i) => {
         slide.classList.remove('active');
-        if (i === index) {
-          slide.classList.add('active');
-        }
+        if (i === index) slide.classList.add('active');
       });
-      current = index;
     }
 
     function nextSlide() {
-      if (current < slides.length - 1) {
-        showSlide(current + 1);
+      if (currentSlide < slides.length - 1) {
+        currentSlide++;
+        showSlide(currentSlide);
       }
     }
 
     function prevSlide() {
-      if (current > 0) {
-        showSlide(current - 1);
+      if (currentSlide > 0) {
+        currentSlide--;
+        showSlide(currentSlide);
       }
     }
 
-    // Optional: Auto-animation when slide changes
-    slides.forEach(slide => {
-      slide.addEventListener('transitionend', () => {
-        slide.classList.remove('transitioning');
-      });
-    });
+    function restart() {
+      currentSlide = 0;
+      showSlide(currentSlide);
+    }
   </script>
 </body>
-
 </html>
