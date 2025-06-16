@@ -4,67 +4,102 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jakhongir's Global Logistics Portfolio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* General Styles */
+        /* CSS Variables for a clean, consistent theme */
         :root {
-            --color-primary-dark: #2c3e50; /* Dark blue-grey for background */
-            --color-primary-light: #34495e; /* Lighter blue-grey for background */
-            --color-accent-blue: #3498db; /* Bright blue for accents */
-            --color-accent-green: #2ecc71; /* Green for success/highlight */
-            --color-text-light: #ecf0f1; /* Light grey for general text */
-            --color-text-white: #ffffff; /* White for main headings */
-            --color-card-bg: rgba(44, 62, 80, 0.8); /* Semi-transparent dark for cards */
-            --color-card-border: rgba(52, 152, 219, 0.4); /* Subtle blue border */
-            --shadow-light: 0 5px 15px rgba(0, 0, 0, 0.2);
-            --shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.4);
+            --primary-bg-dark: #192a3b; /* Darkest background */
+            --primary-bg-medium: #223547; /* Slightly lighter background */
+            --glass-card-bg: rgba(30, 47, 65, 0.8); /* Semi-transparent background for glass cards */
+            --glass-card-border: rgba(52, 152, 219, 0.4); /* Blue border for glass cards */
+            --accent-blue: #3498db; /* Primary accent color */
+            --accent-green: #2ecc71; /* Secondary accent color (for gradients) */
+            --text-light: #e0e6eb; /* Light text for readability */
+            --text-lighter: #c2cbd2; /* Lighter text for secondary info */
+            --text-white: #ffffff; /* Pure white for main titles */
+            --shadow-subtle: 0 4px 15px rgba(0, 0, 0, 0.2);
+            --shadow-elevated: 0 10px 30px rgba(0, 0, 0, 0.4);
+            --transition-speed: 0.4s;
+            --bezier-ease: cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* Base styles for body and general elements */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary-light));
-            color: var(--color-text-light);
-            text-align: center;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg-dark) 0%, var(--primary-bg-medium) 100%);
+            color: var(--text-light);
+            overflow-x: hidden;
+            position: relative;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            line-height: 1.6;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1.5rem;
-            flex-grow: 1; /* Allows container to take available space */
-        }
-
-        /* Header */
-        .main-header {
+        /* Subtle background pattern for professionalism */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 40vh; /* Responsive height */
+            height: 100%;
+            background-image: radial-gradient(circle at 1.5px 1.5px, rgba(52, 152, 219, 0.1) 1.5px, transparent 0);
+            background-size: 30px 30px;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        /* Main container for content alignment */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem; /* Consistent spacing between major sections */
+        }
+
+        /* Header section with image and title overlay */
+        .main-header {
+            position: relative;
+            height: 65vh; /* Slightly taller for impact */
+            border-radius: 18px; /* Softer rounded corners */
             overflow: hidden;
-            border-radius: 12px; /* Slightly more rounded */
-            position: relative; /* For overlay */
-            box-shadow: var(--shadow-light);
-            margin-bottom: 2rem;
+            box-shadow: var(--shadow-elevated);
+            animation: slideInDown 1s var(--bezier-ease) forwards;
+            background: var(--glass-card-bg); /* Base for glass effect */
+            backdrop-filter: blur(12px); /* Stronger blur for glass effect */
+            border: 1px solid var(--glass-card-border);
+        }
+
+        /* Keyframe animation for header entrance */
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-80px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .main-header img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 12px;
-            transition: transform 0.4s ease-in-out; /* Smoother transition */
+            border-radius: 18px;
+            transition: transform 0.6s var(--bezier-ease), filter 0.6s var(--bezier-ease);
+            filter: brightness(0.7) contrast(1.1); /* Deeper, richer image */
+            transform-origin: center center;
         }
 
-        .main-header img:hover {
-            transform: scale(1.03); /* Subtler zoom */
+        .main-header:hover img {
+            transform: scale(1.06); /* More pronounced zoom on hover */
+            filter: brightness(0.85) contrast(1.2);
         }
 
         .main-header__overlay {
@@ -73,117 +108,245 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.4); /* Darker overlay for text contrast */
+            background: linear-gradient(135deg, rgba(25, 42, 59, 0.75) 0%, rgba(52, 152, 219, 0.45) 100%); /* Richer gradient */
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 12px;
+            border-radius: 18px;
         }
 
         .main-header__title {
-            font-family: 'Roboto Condensed', sans-serif;
-            font-size: clamp(1.8rem, 5vw, 3rem); /* Responsive font size */
+            font-family: 'Poppins', sans-serif;
+            font-size: clamp(2.5rem, 7vw, 4.5rem); /* Larger and more responsive */
+            font-weight: 800; /* Bolder */
             text-transform: uppercase;
-            letter-spacing: 3px; /* More prominent */
-            color: var(--color-text-white);
-            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6); /* Stronger shadow */
-            padding: 0 1rem;
+            letter-spacing: 4px; /* More impactful spacing */
+            color: var(--text-white);
+            text-shadow: 0 6px 16px rgba(0, 0, 0, 0.8); /* Stronger shadow for pop */
+            padding: 0 3rem;
+            text-align: center;
+            animation: textPulse 2s infinite alternate ease-in-out; /* Subtle pulse animation */
+            line-height: 1.2;
         }
 
-        /* Navigation Links Grid */
+        @keyframes textPulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.01); opacity: 0.98; }
+        }
+
+        /* Navigation grid with project cards */
         .nav-links {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Adaptive columns */
-            gap: 1.5rem; /* Consistent spacing */
-            margin: 2rem 0;
-            list-style: none; /* Remove bullet points */
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Adaptable for more columns */
+            gap: 1.8rem; /* Refined gap */
+            list-style: none;
             padding: 0;
         }
 
         .nav-links a {
             text-decoration: none;
-            font-size: 1.1rem;
-            font-weight: bold;
-            padding: 1.2rem 1.5rem;
-            border-radius: 10px;
-            background: var(--color-card-bg);
-            color: var(--color-text-white);
-            transition: all 0.3s ease-in-out;
-            display: flex; /* For icon and text alignment */
+            font-size: 1.15rem; /* Slightly larger text */
+            font-weight: 600;
+            padding: 1.8rem 1.5rem;
+            border-radius: 15px; /* Slightly more rounded */
+            background: var(--glass-card-bg);
+            backdrop-filter: blur(10px);
+            color: var(--text-light);
+            border: 1px solid var(--glass-card-border);
+            box-shadow: var(--shadow-subtle);
+            transition: all 0.4s var(--bezier-ease);
+            display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 0.8rem; /* Space between icon and text */
-            border: 1px solid var(--color-card-border);
-            box-shadow: var(--shadow-light);
+            justify-content: flex-start;
+            gap: 1.2rem;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.7s var(--bezier-ease) forwards; /* Smoother, slightly longer fadeIn */
+            opacity: 0;
+            transform: translateY(40px);
+            will-change: transform, box-shadow, background; /* Optimize for animation */
+        }
+
+        /* Staggered animation for navigation cards */
+        .nav-links a:nth-child(1) { animation-delay: 0.15s; }
+        .nav-links a:nth-child(2) { animation-delay: 0.25s; }
+        .nav-links a:nth-child(3) { animation-delay: 0.35s; }
+        .nav-links a:nth-child(4) { animation-delay: 0.45s; }
+        .nav-links a:nth-child(5) { animation-delay: 0.55s; }
+        .nav-links a:nth-child(6) { animation-delay: 0.65s; }
+        .nav-links a:nth-child(7) { animation-delay: 0.75s; }
+        .nav-links a:nth-child(8) { animation-delay: 0.85s; }
+        .nav-links a:nth-child(9) { animation-delay: 0.95s; }
+        .nav-links a:nth-child(10) { animation-delay: 1.05s; }
+        .nav-links a:nth-child(11) { animation-delay: 1.15s; }
+        .nav-links a:nth-child(12) { animation-delay: 1.25s; }
+        .nav-links a:nth-child(13) { animation-delay: 1.35s; }
+        .nav-links a:nth-child(14) { animation-delay: 1.45s; }
+
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hover effect for navigation cards */
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -120%; /* Start further left for a full sweep */
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(var(--accent-blue), 0.7), rgba(var(--accent-green), 0.7)); /* Use RGB values for gradient */
+            transition: left 0.4s var(--bezier-ease);
+            z-index: -1;
+            border-radius: 15px; /* Match card border-radius */
+            will-change: left;
+        }
+
+        .nav-links a:hover::before {
+            left: 0;
         }
 
         .nav-links a:hover {
-            background: rgba(52, 152, 219, 0.9); /* Brighter blue on hover */
-            transform: translateY(-5px); /* Lift effect */
-            box-shadow: var(--shadow-hover);
+            transform: translateY(-8px) scale(1.02); /* More lift and slight scale */
+            box-shadow: var(--shadow-elevated);
+            border-color: var(--accent-blue);
+            color: var(--text-white); /* Ensure text stays white on hover */
         }
 
         .nav-links a i {
-            color: var(--color-text-white); /* Icon color */
-            font-size: 1.3rem;
-            transition: transform 0.3s ease-in-out;
+            font-size: 2rem; /* Larger icons */
+            color: var(--accent-blue); /* Initial icon color */
+            transition: all 0.4s var(--bezier-ease);
+            min-width: 2.2rem;
+            text-align: center;
+            will-change: transform, color;
         }
 
         .nav-links a:hover i {
-            transform: scale(1.1); /* Icon slightly scales on hover */
+            transform: scale(1.2) rotate(5deg); /* More dynamic icon movement */
+            color: var(--text-white); /* Icon turns white on hover */
         }
 
-        /* Footer */
+        .nav-link-text {
+            flex: 1;
+            text-align: left;
+            font-weight: 500;
+            transition: all 0.4s var(--bezier-ease);
+            will-change: transform;
+        }
+
+        .nav-links a:hover .nav-link-text {
+            transform: translateX(8px); /* Move text slightly right */
+        }
+
+        /* Professional Footer styling */
         .footer {
-            background: rgba(0, 0, 0, 0.7);
-            color: var(--color-text-light);
-            padding: 1.2rem 1.5rem;
-            margin-top: 2rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow-light);
+            background: var(--glass-card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-card-border);
+            color: var(--text-lighter);
+            padding: 2.5rem;
+            border-radius: 18px; /* Consistent with header */
+            box-shadow: var(--shadow-subtle);
+            text-align: center;
+            position: relative;
+            animation: slideInUp 1s var(--bezier-ease) forwards;
+        }
+
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(80px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px; /* Slightly thicker line */
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            border-radius: 18px 18px 0 0;
+            animation: footerBorderPulse 2s infinite alternate ease-in-out;
+        }
+
+        @keyframes footerBorderPulse {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
         }
 
         .footer h4 {
-            font-family: 'Roboto Condensed', sans-serif;
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-            color: var(--color-text-white);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.6rem; /* Slightly larger */
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+            color: var(--text-white);
         }
 
         .footer b {
-            font-size: 0.9rem;
-            color: var(--color-text-light);
+            font-size: 1.05rem; /* Slightly larger */
+            font-weight: 400;
+            color: var(--text-lighter);
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .main-header {
-                height: 30vh;
-                margin-bottom: 1.5rem;
+        /* Responsive Design Adjustments */
+        @media (max-width: 1200px) {
+            .container {
+                padding: 2rem;
             }
-
             .main-header__title {
-                font-size: clamp(1.5rem, 6vw, 2.5rem);
+                font-size: clamp(2rem, 6.5vw, 4rem);
             }
-
             .nav-links {
-                grid-template-columns: 1fr; /* Single column on smaller screens */
-                gap: 1rem;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1.5rem;
             }
-
             .nav-links a {
-                padding: 1rem 1.2rem;
-                font-size: 1rem;
-                flex-direction: row; /* Keep icon and text side-by-side */
+                font-size: 1.1rem;
+                padding: 1.6rem 1.2rem;
             }
-
             .nav-links a i {
-                font-size: 1.2rem;
+                font-size: 1.8rem;
             }
+        }
 
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+                gap: 2rem;
+            }
+            .main-header {
+                height: 45vh;
+                margin-bottom: 2rem;
+            }
+            .main-header__title {
+                font-size: clamp(1.8rem, 9vw, 3rem);
+                letter-spacing: 2px;
+                padding: 0 1.5rem;
+            }
+            .nav-links {
+                grid-template-columns: 1fr; /* Single column layout on mobile */
+                gap: 1.2rem;
+            }
+            .nav-links a {
+                padding: 1.4rem 1rem;
+                font-size: 1rem;
+                gap: 1rem;
+                flex-direction: row; /* Keep icon and text side-by-side */
+                justify-content: flex-start;
+            }
+            .nav-links a i {
+                font-size: 1.6rem;
+            }
             .footer {
-                margin-top: 1.5rem;
-                padding: 1rem;
+                padding: 1.8rem;
+                margin-top: 2.5rem;
+            }
+            .footer h4 {
+                font-size: 1.4rem;
+            }
+            .footer b {
+                font-size: 0.9rem;
             }
         }
 
@@ -192,19 +355,46 @@
                 padding: 1rem;
             }
             .main-header {
-                height: 25vh;
+                height: 38vh;
+                border-radius: 12px;
             }
             .main-header__title {
-                font-size: clamp(1.2rem, 7vw, 2rem);
-                letter-spacing: 1.5px;
+                font-size: clamp(1.4rem, 11vw, 2.2rem);
+                letter-spacing: 1px;
+                padding: 0 0.8rem;
+            }
+            .nav-links {
+                gap: 1rem;
             }
             .nav-links a {
-                padding: 0.8rem 1rem;
-                font-size: 0.9rem;
-                gap: 0.5rem;
+                padding: 1.2rem 0.8rem;
+                border-radius: 12px;
+                font-size: 0.95rem;
+                gap: 0.8rem;
             }
             .nav-links a i {
-                font-size: 1rem;
+                font-size: 1.4rem;
+            }
+            .footer {
+                padding: 1.5rem;
+                border-radius: 12px;
+            }
+            .footer h4 {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Ensure smooth transitions and animations are enabled for devices that prefer them */
+        @media (prefers-reduced-motion: no-preference) {
+            .nav-links a, .nav-links a i, .nav-links a::before, .nav-link-text {
+                transition: all var(--transition-speed) var(--bezier-ease);
+            }
+        }
+
+        /* Enhanced hover effects for desktop (where hover is available) */
+        @media (hover: hover) {
+            .nav-links a:hover {
+                cursor: pointer;
             }
         }
     </style>
@@ -220,46 +410,60 @@
         
         <nav class="nav-links">
             <a href="https://docs.google.com/document/d/1JxFPO5MT3XnWgB-keLrdGYDyxNGd-56KRLLFnWVIvTA/edit?usp=sharing">
-                <i class="fas fa-file-alt"></i> What is Logistics
+                <i class="fas fa-file-alt"></i>
+                <span class="nav-link-text">What is Logistics</span>
             </a>
             <a href="https://jakhongiromonboev.github.io/Logistics-flowchart/">
-                <i class="fas fa-project-diagram"></i> Logistics Flowchart
+                <i class="fas fa-project-diagram"></i>
+                <span class="nav-link-text">Logistics Flowchart</span>
             </a>
             <a href="https://docs.google.com/document/d/1PfqV1nOKEnmGj9X2ShiG-1WHD6AY1rUrsAtbNcoJGWo/edit?usp=sharing">
-                <i class="fas fa-chart-line"></i> Report to Flowchart
+                <i class="fas fa-chart-line"></i>
+                <span class="nav-link-text">Report to Flowchart</span>
             </a>
             <a href="https://jakhongiromonboev.github.io/lead-time-answers/">
-                <i class="fas fa-hourglass-half"></i> Lead Time Answers
+                <i class="fas fa-hourglass-half"></i>
+                <span class="nav-link-text">Lead Time Answers</span>
             </a>
             <a href="https://jakhongiromonboev.github.io/lead-time-analysis/">
-                <i class="fas fa-magnifying-glass-chart"></i> Lead Time Analysis
+                <i class="fas fa-magnifying-glass-chart"></i>
+                <span class="nav-link-text">Lead Time Analysis</span>
             </a>
             <a href="tsp_game.html">
-                <i class="fas fa-gamepad"></i> Adventure TSP Game
+                <i class="fas fa-gamepad"></i>
+                <span class="nav-link-text">Adventure TSP Game</span>
             </a>
             <a href="design_thinking.html">
-                <i class="fas fa-lightbulb"></i> Design Thinking
+                <i class="fas fa-lightbulb"></i>
+                <span class="nav-link-text">Design Thinking</span>
             </a>
             <a href="order_fulfillment_prd.html">
-                <i class="fas fa-clipboard-list"></i> Order Fulfillment PRD
+                <i class="fas fa-clipboard-list"></i>
+                <span class="nav-link-text">Order Fulfillment PRD</span>
             </a>
             <a href="abc_classification&slotting_strategy.html">
-                <i class="fas fa-boxes"></i> ABC Classification & Slotting
+                <i class="fas fa-boxes"></i>
+                <span class="nav-link-text">ABC Classification & Slotting</span>
             </a>
             <a href="problem_research.html">
-                <i class="fas fa-flask"></i> Problem Research
+                <i class="fas fa-flask"></i>
+                <span class="nav-link-text">Problem Research</span>
             </a>
             <a href="abc_classification.html">
-                <i class="fas fa-cubes"></i> Generalizing Slotting Problem
+                <i class="fas fa-cubes"></i>
+                <span class="nav-link-text">Generalizing Slotting Problem</span>
             </a>
             <a href="slotting-tool.html">
-                <i class="fas fa-tools"></i> Slotting Problem Tool
+                <i class="fas fa-tools"></i>
+                <span class="nav-link-text">Slotting Problem Tool</span>
             </a>
             <a href="design-thinking-steps.html">
-                <i class="fas fa-shoe-prints"></i> TSP Game Design Steps
+                <i class="fas fa-shoe-prints"></i>
+                <span class="nav-link-text">TSP Game Design Steps</span>
             </a>
             <a href="https://docs.google.com/spreadsheets/d/1ir-kifhU2GXl1qR8ae21I7GkEo82Ip1ErNn870dGR1c/edit?usp=share_link">
-                <i class="fas fa-exclamation-triangle"></i> Counterfeit Supplements
+                <i class="fas fa-exclamation-triangle"></i>
+                <span class="nav-link-text">Counterfeit Supplements</span>
             </a>
         </nav>
 
