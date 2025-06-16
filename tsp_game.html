@@ -229,6 +229,41 @@
             text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
         }
 
+        /* --- Fuel Gauge --- */
+        .fuel-gauge-container {
+            width: 100%;
+            height: 25px;
+            background-color: rgba(0,0,0,0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            overflow: hidden;
+            margin-top: 10px;
+            position: relative;
+            box-shadow: inset 0 0 5px rgba(0, 255, 255, 0.5);
+        }
+
+        #fuelGauge {
+            height: 100%;
+            width: 100%; /* Default to full */
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71); /* Red to Green */
+            border-radius: 12px;
+            transition: width 0.3s ease-out;
+            transform-origin: left;
+        }
+        #fuelGauge.empty {
+            background: #e74c3c;
+        }
+        #fuelLabel {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 25px;
+            font-size: 12px;
+            color: white;
+            text-shadow: 0 0 3px black;
+        }
+
+
         /* --- Animations --- */
         .phase {
             opacity: 0;
@@ -384,6 +419,13 @@
                             <span class="info-label">Current Goal:</span>
                             <span class="info-value" id="goalMessage">Plot a path!</span>
                         </div>
+                        <div class="info-item">
+                            <span class="info-label">Fuel Remaining:</span>
+                            <div class="fuel-gauge-container">
+                                <div id="fuelGauge"></div>
+                                <span id="fuelLabel"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -397,6 +439,7 @@
             <ul>
                 <li>🚀 **Click on the nebula** to establish new star cities.</li>
                 <li>⭐ **Click on cities in sequence** to plot your navigation route. Click the first city again to complete the loop.</li>
+                <li>⛽ **Watch your fuel!** Each jump consumes fuel. Reach all cities and close the loop before running out!</li>
                 <li>✅ **"Submit My Route"** to see how your path compares to the supercomputer's optimal solution.</li>
                 <li>🧠 **"Show Optimal Route"** reveals the shortest path found by the algorithm.</li>
                 <li>🔄 Use **"Reset My Route"** to clear your path and try again.</li>
@@ -433,6 +476,12 @@
                 this.optimalDistance = Infinity;
                 this.playerDistance = 0;
                 this.currentHoverCity = null; // For hover effect on cities
+                this.animationFrameId = null; // To manage animations
+
+                // Fuel System
+                this.maxFuel = 1000;
+                this.currentFuel = this.maxFuel;
+                this.fuelConsumptionPerUnitDistance = 1; // Adjust this value for difficulty
 
                 this.setupCanvas();
                 this.bindEvents();
@@ -507,33 +556,198 @@
                 });
             }
 
+            // Function to draw different city "stickers"
+            drawCityIcon(ctx, city, radius, alpha = 1) {
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = city.color || '#fff'; // Use predefined color or default
+                
+                // Draw different shapes based on city type
+                switch (city.type) {
+                    case 'planet':
+                        ctx.beginPath();
+                        ctx.arc(city.x, city.y, radius, 0, Math.PI * 2);
+                        ctx.fill();
+                        // Add a simple ring for a 'gas giant' effect
+                        if (city.id % 3 === 0) {
+                            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
+                            ctx.lineWidth = 1.5;
+                            ctx.beginPath();
+                            ctx.ellipse(city.x, city.y, radius * 1.5, radius * 0.5, Math.PI / 4, 0, Math.PI * 2);
+                            ctx.stroke();
+                        }
+                        break;
+                    case 'star':
+                        // Simple star shape (e.g., a diamond or cross for now)
+                        ctx.beginPath();
+                        ctx.moveTo(city.x, city.y - radius);
+                        ctx.lineTo(city.x + radius * 0.6, city.y);
+                        ctx.lineTo(city.x, city.y + radius);
+                        ctx.lineTo(city.x - radius * 0.6, city.y);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                    case 'nebula':
+                        // A more abstract, cloud-like shape
+                        ctx.beginPath();
+                        ctx.arc(city.x, city.y, radius * 0.8, 0, Math.PI * 2);
+                        ctx.arc(city.x + radius * 0.5, city.y - radius * 0.3, radius * 0.6, 0, Math.PI * 2);
+                        ctx.arc(city.x - radius * 0.5, city.y + radius * 0.3, radius * 0.7, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                    default: // Default to a simple circle
+                        ctx.beginPath();
+                        ctx.arc(city.x, city.y, radius, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                }
+                ctx.restore();
+            }
+
             addCity(x, y) {
-                this.cities.push({ x, y, id: this.cities.length });
+                const cityTypes = ['planet', 'star', 'nebula'];
+                const cityColors = ['#87ceeb', '#FFD700', '#FF6347', '#9370DB', '#7CFC00']; // Blue, Gold, Red, Purple, Green
+                const newCity = { 
+                    x, y, 
+                    id: this.cities.length,
+                    type: cityTypes[Math.floor(Math.random() * cityTypes.length)],
+                    color: cityColors[Math.floor(Math.random() * cityColors.length)],
+                    animationProgress: 0 // For warp-in animation
+                };
+                this.cities.push(newCity);
                 this.resetPlayerRoute(); // Reset player route on new city
                 this.optimalRoute = []; // Clear optimal route
                 this.optimalDistance = Infinity; // Reset optimal distance
+                this.currentFuel = this.maxFuel; // Refill fuel on new game state
+                document.getElementById('gameFeedback').textContent = '';
+                document.getElementById('starRating').style.display = 'none';
+
+                this.animateCityIn(newCity); // Start warp-in animation
                 this.updateStats();
-                this.draw();
+            }
+
+            animateCityIn(city) {
+                const duration = 500; // ms
+                const startTime = performance.now();
+                const animate = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    city.animationProgress = Math.min(1, elapsed / duration);
+                    this.draw(); // Redraw canvas
+                    if (city.animationProgress < 1) {
+                        this.animationFrameId = requestAnimationFrame(animate);
+                    }
+                };
+                this.animationFrameId = requestAnimationFrame(animate);
             }
 
             addCityToPlayerRoute(cityIndex) {
-                // If route is empty or the last city is different, add it
-                if (this.playerRoute.length === 0 || this.playerRoute[this.playerRoute.length - 1] !== cityIndex) {
+                if (this.currentFuel <= 0) {
+                    document.getElementById('gameFeedback').textContent = 'Mission Failed: Out of Fuel!';
+                    return;
+                }
+                
+                const currentCityCount = this.playerRoute.filter((v, i, a) => a.indexOf(v) === i).length;
+
+                // If adding the very first city
+                if (this.playerRoute.length === 0) {
                     this.playerRoute.push(cityIndex);
-                    this.playerDistance = this.calculateRouteDistance(this.playerRoute, false); // Don't loop until submitted
                     this.updateStats();
                     this.draw();
-                    document.getElementById('gameFeedback').textContent = ''; // Clear feedback
+                    document.getElementById('gameFeedback').textContent = '';
                     document.getElementById('starRating').style.display = 'none';
-                } else if (this.playerRoute.length > 1 && this.playerRoute[0] === cityIndex) {
-                    // If clicking the first city again to complete the loop
-                    this.submitPlayerRoute();
+                    return;
                 }
+
+                // Check for duplicate consecutive clicks (prevent adding same city twice in a row)
+                if (this.playerRoute[this.playerRoute.length - 1] === cityIndex) {
+                    // Allow clicking first city again to close loop if all unique cities visited
+                    const uniqueCitiesVisited = new Set(this.playerRoute).size;
+                    if (uniqueCitiesVisited === this.cities.length && this.playerRoute[0] === cityIndex) {
+                        this.submitPlayerRoute(); // Submit if closing the loop
+                    }
+                    return;
+                }
+
+                const prevCityIndex = this.playerRoute[this.playerRoute.length - 1];
+                const distanceSegment = this.calculateDistance(this.cities[prevCityIndex], this.cities[cityIndex]);
+                const fuelCost = distanceSegment * this.fuelConsumptionPerUnitDistance;
+
+                if (this.currentFuel - fuelCost < 0) {
+                    document.getElementById('gameFeedback').textContent = 'Not enough fuel for this jump!';
+                    return;
+                }
+
+                this.currentFuel -= fuelCost;
+                this.playerRoute.push(cityIndex);
+                this.playerDistance += distanceSegment;
+
+                this.updateStats();
+                // Animate the line drawing
+                this.animateLine(prevCityIndex, cityIndex, () => {
+                    this.draw(); // Redraw after animation
+                });
+                document.getElementById('gameFeedback').textContent = '';
+                document.getElementById('starRating').style.display = 'none';
+            }
+
+            animateLine(fromCityIndex, toCityIndex, callback) {
+                const city1 = this.cities[fromCityIndex];
+                const city2 = this.cities[toCityIndex];
+                const duration = 300; // milliseconds
+                const startTime = performance.now();
+
+                const animate = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(1, elapsed / duration);
+
+                    this.draw(); // Clear and redraw everything
+                    this.ctx.strokeStyle = '#00ffff'; // Player route color
+                    this.ctx.lineWidth = 3;
+                    this.ctx.setLineDash([]);
+                    this.ctx.beginPath();
+
+                    // Redraw previous segments
+                    for (let i = 0; i < this.playerRoute.length - 1; i++) {
+                        const p1 = this.cities[this.playerRoute[i]];
+                        const p2 = this.cities[this.playerRoute[i+1]];
+                        if (i === 0) this.ctx.moveTo(p1.x, p1.y);
+                        else this.ctx.lineTo(p1.x, p1.y);
+                        this.ctx.lineTo(p2.x, p2.y);
+                    }
+
+                    // Draw the animating segment
+                    const currentX = city1.x + (city2.x - city1.x) * progress;
+                    const currentY = city1.y + (city2.y - city1.y) * progress;
+                    
+                    if (this.playerRoute.length === 1) { // If it's the very first segment
+                         this.ctx.moveTo(city1.x, city1.y);
+                    }
+                    this.ctx.lineTo(currentX, currentY);
+                    this.ctx.stroke();
+
+                    if (progress < 1) {
+                        this.animationFrameId = requestAnimationFrame(animate);
+                    } else {
+                        if (callback) callback();
+                    }
+                };
+                // Cancel any ongoing line animations before starting a new one
+                if (this.animationFrameId) {
+                    cancelAnimationFrame(this.animationFrameId);
+                }
+                this.animationFrameId = requestAnimationFrame(animate);
             }
 
             resetPlayerRoute() {
+                // Cancel any ongoing animations before resetting
+                if (this.animationFrameId) {
+                    cancelAnimationFrame(this.animationFrameId);
+                    this.animationFrameId = null;
+                }
+
                 this.playerRoute = [];
                 this.playerDistance = 0;
+                this.currentFuel = this.maxFuel; // Reset fuel on route clear
                 document.getElementById('gameFeedback').textContent = '';
                 document.getElementById('starRating').style.display = 'none';
                 this.updateStats();
@@ -545,29 +759,31 @@
                     document.getElementById('gameFeedback').textContent = 'Need at least 2 cities to submit a route!';
                     return;
                 }
-                if (this.playerRoute.length !== this.cities.length) {
+                const uniqueCitiesVisited = new Set(this.playerRoute).size;
+                if (uniqueCitiesVisited !== this.cities.length) {
                     document.getElementById('gameFeedback').textContent = 'Visit all cities before submitting!';
                     return;
                 }
                 // Ensure the route is a full cycle (ends back at start)
-                if (this.playerRoute[0] !== this.playerRoute[this.playerRoute.length - 1] && this.playerRoute.length > 1) {
-                     // If player hasn't explicitly clicked back to start, add it
-                    if (this.playerRoute.filter((v, i, a) => a.indexOf(v) === i).length === this.cities.length) {
-                        // All unique cities visited, just close the loop visually for scoring
-                        this.playerRoute.push(this.playerRoute[0]);
-                    } else {
-                        document.getElementById('gameFeedback').textContent = 'Visit all unique cities and close the loop!';
-                        return;
-                    }
+                if (this.playerRoute[0] !== this.playerRoute[this.playerRoute.length - 1]) {
+                     // Add the first city to close the loop for final calculation
+                     this.playerRoute.push(this.playerRoute[0]);
+                     this.playerDistance = this.calculateRouteDistance(this.playerRoute, true);
+                     // Animate the closing line
+                     this.animateLine(this.playerRoute[this.playerRoute.length - 2], this.playerRoute[this.playerRoute.length - 1], () => {
+                        this.draw(); // Redraw after animation
+                        this.solveTSP(); // Immediately calculate optimal route for comparison
+                        this.updateStats();
+                        this.giveFeedback();
+                     });
+                } else {
+                    this.playerDistance = this.calculateRouteDistance(this.playerRoute, true);
+                    this.solveTSP(); // Immediately calculate optimal route for comparison
+                    this.updateStats();
+                    this.draw(); // Redraw with final player route
+                    this.giveFeedback();
                 }
                 
-                this.playerDistance = this.calculateRouteDistance(this.playerRoute, true);
-                this.solveTSP(); // Immediately calculate optimal route for comparison
-
-                this.updateStats();
-                this.draw(); // Redraw with final player route
-
-                this.giveFeedback();
             }
 
             giveFeedback() {
@@ -580,6 +796,14 @@
                     starRatingDiv.textContent = '';
                     return;
                 }
+                if (this.currentFuel <= 0 && this.playerRoute.filter((v, i, a) => a.indexOf(v) === i).length < this.cities.length) {
+                    feedbackDiv.textContent = 'Mission Failed: Out of Fuel! 💥';
+                    starRatingDiv.textContent = '💀'; // Skull or similar for failure
+                    feedbackDiv.style.color = '#e74c3c'; // Red for failure
+                    return;
+                }
+
+                feedbackDiv.style.color = '#2ecc71'; // Default success color
 
                 const playerRatio = this.playerDistance / this.optimalDistance;
 
@@ -600,8 +824,13 @@
 
 
             clearCities() {
+                // Cancel any ongoing animations before clearing
+                if (this.animationFrameId) {
+                    cancelAnimationFrame(this.animationFrameId);
+                    this.animationFrameId = null;
+                }
                 this.cities = [];
-                this.resetPlayerRoute();
+                this.resetPlayerRoute(); // This also resets fuel
                 this.optimalRoute = [];
                 this.optimalDistance = Infinity;
                 document.getElementById('gameFeedback').textContent = '';
@@ -616,13 +845,24 @@
                 const width = this.canvas.offsetWidth - 2 * margin;
                 const height = this.canvas.offsetHeight - 2 * margin;
 
+                const cityTypes = ['planet', 'star', 'nebula'];
+                const cityColors = ['#87ceeb', '#FFD700', '#FF6347', '#9370DB', '#7CFC00'];
+
+                let newCities = [];
                 for (let i = 0; i < count; i++) {
                     const x = margin + Math.random() * width;
                     const y = margin + Math.random() * height;
-                    this.cities.push({ x, y, id: i });
+                    newCities.push({ 
+                        x, y, 
+                        id: i,
+                        type: cityTypes[Math.floor(Math.random() * cityTypes.length)],
+                        color: cityColors[Math.floor(Math.random() * cityColors.length)],
+                        animationProgress: 0
+                    });
                 }
+                this.cities = newCities; // Add all cities at once
+                this.cities.forEach(city => this.animateCityIn(city)); // Animate all in
                 this.updateStats();
-                this.draw();
             }
 
             calculateDistance(city1, city2) {
@@ -679,8 +919,8 @@
             bruteForceTSP() {
                 const numCities = this.cities.length;
                 if (numCities < 2) return [];
-                if (numCities > 10) { // Limit for performance
-                    console.warn("Brute force is too slow for more than 10 cities. Using Nearest Neighbor.");
+                if (numCities > 8) { // Strict limit for performance in a game
+                    console.warn("Brute force is too slow for more than 8 cities. Using Nearest Neighbor.");
                     return this.nearestNeighborTSP();
                 }
 
@@ -688,7 +928,11 @@
                 let bestPermutation = [];
 
                 // Generate all permutations using Heap's algorithm
-                function permute(arr, l, r) {
+                const swap = (arr, i, j) => {
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                };
+
+                const permute = (arr, l, r) => {
                     if (l === r) {
                         const currentDistance = this.calculateRouteDistance(arr, true);
                         if (currentDistance < smallestDistance) {
@@ -697,15 +941,15 @@
                         }
                     } else {
                         for (let i = l; i <= r; i++) {
-                            [arr[l], arr[i]] = [arr[i], arr[l]]; // Swap
-                            permute.call(this, arr, l + 1, r);
-                            [arr[l], arr[i]] = [arr[i], arr[l]]; // Backtrack
+                            swap(arr, l, i);
+                            permute(arr, l + 1, r);
+                            swap(arr, l, i); // Backtrack
                         }
                     }
-                }
+                };
 
                 const initialPermutation = Array.from({ length: numCities }, (_, i) => i);
-                permute.call(this, initialPermutation, 0, numCities - 1);
+                permute(initialPermutation, 0, numCities - 1);
                 
                 return bestPermutation;
             }
@@ -719,16 +963,10 @@
                 document.getElementById('gameFeedback').textContent = 'Calculating optimal route...';
 
                 // Use brute force for small N, Nearest Neighbor for larger N
-                // The current problem statement only asks for Nearest Neighbor.
-                // If you want true optimal, uncomment bruteForceTSP and adjust threshold.
-                const route = this.cities.length <= 8 ? this.bruteForceTSP() : this.nearestNeighborTSP(); // Adjust threshold as needed
+                const route = this.cities.length <= 8 ? this.bruteForceTSP() : this.nearestNeighborTSP();
                 
-                // If using nearest neighbor and optimal is already calculated by player, keep it for comparison
-                // Otherwise, this.optimalRoute is set by solveTSP.
-                if (this.optimalDistance === Infinity || this.cities.length > 8) { // If using NN, or if brute force wasn't run
-                    this.optimalDistance = this.calculateRouteDistance(route, true);
-                    this.optimalRoute = route;
-                }
+                this.optimalDistance = this.calculateRouteDistance(route, true);
+                this.optimalRoute = route;
 
                 this.updateStats();
                 this.draw();
@@ -736,6 +974,11 @@
             }
 
             draw() {
+                // Cancel any ongoing line animations if we're doing a full redraw
+                if (this.animationFrameId) {
+                    cancelAnimationFrame(this.animationFrameId);
+                    this.animationFrameId = null;
+                }
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
                 // Draw optimal route (if exists)
@@ -759,7 +1002,7 @@
                     this.ctx.stroke();
                 }
                 
-                // Draw player's current route
+                // Draw player's current route (non-animating parts)
                 if (this.playerRoute.length > 1) {
                     this.ctx.strokeStyle = '#00ffff'; // Cyan for player's route
                     this.ctx.lineWidth = 3;
@@ -773,14 +1016,10 @@
                             this.ctx.lineTo(city.x, city.y);
                         }
                     }
-                    // Only draw connecting line to start if route is complete for display
-                    if (this.playerRoute.length === this.cities.length && this.playerRoute[0] === this.playerRoute[this.playerRoute.length - 1]) {
-                        const firstCity = this.cities[this.playerRoute[0]];
-                        this.ctx.lineTo(firstCity.x, firstCity.y);
-                    } else if (this.playerRoute.length === this.cities.length && this.playerRoute[0] !== this.playerRoute[this.playerRoute.length - 1]){
-                        // If all cities visited but not explicitly closed, draw the closing line for player to see
+                    // Close the loop visually if ready for submission
+                    const uniqueCitiesVisited = new Set(this.playerRoute).size;
+                    if (uniqueCitiesVisited === this.cities.length && this.playerRoute[0] !== this.playerRoute[this.playerRoute.length - 1]) {
                          const firstCity = this.cities[this.playerRoute[0]];
-                         const lastCity = this.cities[this.playerRoute[this.playerRoute.length - 1]];
                          this.ctx.lineTo(firstCity.x, firstCity.y);
                     }
                     this.ctx.stroke();
@@ -791,30 +1030,34 @@
 
                 // Draw cities
                 this.cities.forEach((city, index) => {
-                    // City glow (larger for hover)
-                    const radius = (this.currentHoverCity === index) ? 18 : 15;
-                    const glowGradient = this.ctx.createRadialGradient(city.x, city.y, 0, city.x, city.y, radius);
-                    glowGradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-                    glowGradient.addColorStop(0.7, (this.currentHoverCity === index) ? '#00ffff' : '#87ceeb');
+                    // City glow and animation
+                    const baseRadius = 15;
+                    const animatedRadius = baseRadius * city.animationProgress;
+                    const animatedAlpha = city.animationProgress;
+
+                    const radius = (this.currentHoverCity === index) ? (animatedRadius * 1.2) : animatedRadius;
+                    
+                    const glowGradient = this.ctx.createRadialGradient(city.x, city.y, 0, city.x, city.y, radius + 5);
+                    glowGradient.addColorStop(0, `rgba(255, 255, 255, ${animatedAlpha * 0.9})`);
+                    glowGradient.addColorStop(0.7, (this.currentHoverCity === index) ? `rgba(0, 255, 255, ${animatedAlpha})` : `rgba(135, 206, 235, ${animatedAlpha})`);
                     glowGradient.addColorStop(1, 'transparent');
                     
                     this.ctx.fillStyle = glowGradient;
                     this.ctx.beginPath();
-                    this.ctx.arc(city.x, city.y, radius, 0, 2 * Math.PI);
+                    this.ctx.arc(city.x, city.y, radius + 5, 0, 2 * Math.PI); // Larger outer glow
                     this.ctx.fill();
 
-                    // City core
-                    this.ctx.fillStyle = '#ffffff';
-                    this.ctx.beginPath();
-                    this.ctx.arc(city.x, city.y, 8, 0, 2 * Math.PI);
-                    this.ctx.fill();
-
-                    // City number
-                    this.ctx.fillStyle = '#000';
-                    this.ctx.font = 'bold 13px Orbitron'; /* Font for city numbers */
-                    this.ctx.textAlign = 'center';
-                    this.ctx.textBaseline = 'middle';
-                    this.ctx.fillText((index + 1).toString(), city.x, city.y);
+                    // Draw the themed city icon
+                    this.drawCityIcon(this.ctx, city, radius, animatedAlpha);
+                    
+                    // City number (only if visible enough)
+                    if (city.animationProgress > 0.8) {
+                        this.ctx.fillStyle = '#000';
+                        this.ctx.font = 'bold 13px Orbitron'; /* Font for city numbers */
+                        this.ctx.textAlign = 'center';
+                        this.ctx.textBaseline = 'middle';
+                        this.ctx.fillText((index + 1).toString(), city.x, city.y);
+                    }
                 });
             }
 
@@ -825,31 +1068,46 @@
                 this.ctx.strokeStyle = color;
                 this.ctx.lineWidth = 2;
 
-                // Loop up to routeIndices.length - 1 for regular segments,
-                // and then explicitly handle closing segment if playerRoute is complete
-                let segmentsToDraw = routeIndices.length - 1;
-                if (routeIndices.length === this.cities.length && routeIndices[0] !== routeIndices[routeIndices.length - 1]) {
-                    // If all unique cities visited but not closed, show closing arrow.
-                    // This is to guide the player to click the first city.
-                    segmentsToDraw++; // Add one more segment for the closing line
-                } else if (routeIndices.length > 1 && routeIndices[0] === routeIndices[routeIndices.length - 1]) {
-                    // If the route is explicitly closed, loop one less for array access
-                    segmentsToDraw = routeIndices.length - 1;
-                }
-
+                const segmentsToDraw = routeIndices.length - 1;
 
                 for (let i = 0; i < segmentsToDraw; i++) {
                     const currentCity = this.cities[routeIndices[i]];
-                    const nextCity = this.cities[routeIndices[(i + 1) % routeIndices.length]]; // This handles the loop automatically if route is complete and closed
+                    const nextCity = this.cities[routeIndices[i + 1]];
                     
-                    // Special handling for the closing segment if the player just finished visiting all cities
-                    let finalNextCity = nextCity;
-                    if (i === routeIndices.length - 1 && routeIndices.length === this.cities.length && routeIndices[0] !== routeIndices[routeIndices.length - 1]) {
-                        finalNextCity = this.cities[routeIndices[0]]; // Draw arrow back to the start city
-                    }
+                    const dx = nextCity.x - currentCity.x;
+                    const dy = nextCity.y - currentCity.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
 
-                    const dx = finalNextCity.x - currentCity.x;
-                    const dy = finalNextCity.y - currentCity.y;
+                    if (distance > 30) {
+                        const midX = currentCity.x + dx * 0.5; // Midpoint for arrow
+                        const midY = currentCity.y + dy * 0.5;
+
+                        const angle = Math.atan2(dy, dx);
+                        const arrowLength = 10;
+                        const arrowAngle = 0.5;
+
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(midX, midY);
+                        this.ctx.lineTo(
+                            midX - arrowLength * Math.cos(angle - arrowAngle),
+                            midY - arrowLength * Math.sin(angle - arrowAngle)
+                        );
+                        this.ctx.moveTo(midX, midY);
+                        this.ctx.lineTo(
+                            midX - arrowLength * Math.cos(angle + arrowAngle),
+                            midY - arrowLength * Math.sin(angle + arrowAngle)
+                        );
+                        this.ctx.stroke();
+                    }
+                }
+                // Draw closing arrow if applicable and not already drawn
+                const uniqueCitiesVisited = new Set(routeIndices).size;
+                if (uniqueCitiesVisited === this.cities.length && routeIndices[0] !== routeIndices[routeIndices.length - 1]) {
+                    const currentCity = this.cities[routeIndices[routeIndices.length - 1]];
+                    const nextCity = this.cities[routeIndices[0]];
+
+                    const dx = nextCity.x - currentCity.x;
+                    const dy = nextCity.y - currentCity.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
 
                     if (distance > 30) {
@@ -886,16 +1144,39 @@
                 
                 // Update goal message
                 const goalMessageElement = document.getElementById('goalMessage');
-                if (this.cities.length === 0) {
+                const uniqueCitiesVisited = new Set(this.playerRoute).size;
+
+                if (this.currentFuel <= 0 && uniqueCitiesVisited < this.cities.length && this.cities.length > 0) {
+                    goalMessageElement.textContent = 'Out of fuel!';
+                    goalMessageElement.style.color = '#e74c3c'; // Red
+                } else if (this.cities.length === 0) {
                     goalMessageElement.textContent = 'Place cities!';
+                    goalMessageElement.style.color = '#00ffff';
                 } else if (this.playerRoute.length === 0) {
                     goalMessageElement.textContent = 'Start plotting!';
-                } else if (this.playerRoute.filter((v, i, a) => a.indexOf(v) === i).length < this.cities.length) {
-                    goalMessageElement.textContent = 'Visit all cities!';
-                } else if (this.playerRoute[0] !== this.playerRoute[this.playerRoute.length - 1]) {
+                    goalMessageElement.style.color = '#00ffff';
+                } else if (uniqueCitiesVisited < this.cities.length) {
+                    goalMessageElement.textContent = `Visit ${this.cities.length - uniqueCitiesVisited} more!`;
+                    goalMessageElement.style.color = '#00ffff';
+                } else if (this.playerRoute[0] !== this.playerRoute[this.playerRoute.length - 1] && uniqueCitiesVisited === this.cities.length) {
                     goalMessageElement.textContent = 'Close the loop!';
+                    goalMessageElement.style.color = '#00ffff';
                 } else {
                     goalMessageElement.textContent = 'Submit your path!';
+                    goalMessageElement.style.color = '#00ffff';
+                }
+
+                // Update Fuel Gauge
+                const fuelGauge = document.getElementById('fuelGauge');
+                const fuelLabel = document.getElementById('fuelLabel');
+                const fuelPercentage = (this.currentFuel / this.maxFuel) * 100;
+                fuelGauge.style.width = `${Math.max(0, fuelPercentage)}%`;
+                fuelLabel.textContent = `${Math.round(this.currentFuel)} / ${this.maxFuel} units`;
+
+                if (fuelPercentage <= 20) {
+                    fuelGauge.classList.add('empty');
+                } else {
+                    fuelGauge.classList.remove('empty');
                 }
             }
         }
