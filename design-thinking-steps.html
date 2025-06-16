@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSP Navigator - The Cosmic Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- General Styles --- */
+        :root {
+            --color-primary: #4a90e2; /* Blue */
+            --color-secondary: #e74c3c; /* Red */
+            --color-success: #2ecc71; /* Green */
+            --color-info: #00ffff; /* Cyan */
+            --color-warning: #f39c12; /* Orange */
+            --color-header-text: #87ceeb; /* Light blue */
+            --color-gold: #FFD700; /* Gold */
+            --bg-dark: #0d0d1e; /* Deep space dark blue */
+            --bg-glass-light: rgba(255, 255, 255, 0.08);
+            --border-glass-light: rgba(255, 255, 255, 0.15);
+            --shadow-primary: 0 0 30px rgba(74, 144, 226, 0.3);
+            --shadow-button: 0 5px 15px rgba(0,0,0,0.3);
+            --blur-intensity: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif; /* Futuristic font */
+            background: var(--bg-dark); /* Dark base for space */
+            color: white;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative; /* Needed for absolute positioning of background elements */
+            line-height: 1.6;
+        }
+
+        /* --- Dynamic Space Background --- */
+        .background-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a2a, #1a0a3a, #0a1a3a); /* Deep space gradient */
+            background-size: 400% 400%; /* Larger size for animation */
+            animation: gradientShift 25s ease infinite; /* Slower, smoother animation */
+            z-index: 0;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        #stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allows clicking through stars to elements below */
+            z-index: 1; /* Above gradient, below content */
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle linear infinite;
+            box-shadow: 0 0 5px white; /* Add a subtle glow */
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* --- Main Container --- */
+        .container {
+            position: relative;
+            z-index: 10; /* Ensure content is above background */
+            max-width: 1200px;
+            margin: 30px auto; /* More vertical margin */
+            padding: 25px; /* Consistent padding */
+            display: flex;
+            flex-direction: column;
+            gap: 25px; /* Space between sections */
+            width: 95%; /* Responsive width */
+        }
+
+        /* --- Glassmorphism Base Style for Panels --- */
+        .panel {
+            background: var(--bg-glass-light);
+            backdrop-filter: blur(var(--blur-intensity));
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid var(--border-glass-light);
+            box-shadow: var(--shadow-primary);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .panel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(74, 144, 226, 0.4);
+        }
+
+        /* --- Header --- */
+        .header {
+            text-align: center;
+            animation: fadeInHeader 1s ease-out;
+        }
+        .header h1 {
+            font-size: 3.2em;
+            margin-bottom: 15px;
+            color: var(--color-header-text);
+            text-shadow: 0 0 25px var(--color-header-text);
+            letter-spacing: 2px;
+        }
+        .header p {
+            font-size: 1.15em;
+            color: #c0c0c0;
+        }
+
+        /* --- Game Area Layout --- */
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 340px; /* Wider control panel */
+            gap: 25px;
+        }
+
+        /* --- Canvas Container --- */
+        .canvas-container {
+            position: relative; /* For city stickers/icons */
+        }
+        #gameCanvas {
+            width: 100%;
+            height: 580px; /* Slightly taller canvas */
+            background: rgba(0, 0, 0, 0.5); /* Darker canvas background */
+            border-radius: 15px;
+            cursor: crosshair;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        #gameCanvas:hover {
+            border-color: var(--color-info);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.7), 0 0 15px var(--color-info);
+        }
+
+        /* --- Control Panel --- */
+        .control-panel {
+            height: fit-content;
+        }
+        .control-section {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.15); /* Lighter dash */
+        }
+        .control-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .control-section h3 {
+            margin-bottom: 18px;
+            color: var(--color-header-text);
+            text-shadow: 0 0 15px var(--color-header-text);
+            font-size: 1.4em; /* Slightly larger */
+            letter-spacing: 1.2px;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            width: 100%;
+            padding: 15px; /* More padding */
+            margin: 10px 0;
+            border: none;
+            border-radius: 12px; /* Slightly more rounded */
+            font-size: 16px; /* Slightly larger font */
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.8px; /* More prominent */
+            box-shadow: var(--shadow-button);
+            text-shadow: 0 0 5px rgba(0,0,0,0.4);
+            font-family: 'Orbitron', sans-serif; /* Apply Orbitron to buttons */
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--color-primary), #7bb3f0);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #357abd, #5a9bd4);
+            transform: translateY(-4px) scale(1.02); /* More pronounced lift */
+            box-shadow: 0 10px 22px rgba(74, 144, 226, 0.7); /* Stronger hover shadow */
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, var(--color-secondary), #ff8a65); /* Softer red gradient */
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(45deg, #c0392b, #e67d5e);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 22px rgba(231, 76, 60, 0.7);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, var(--color-success), #58d68f);
+            color: white;
+        }
+        .btn-success:hover {
+            background: linear-gradient(45deg, #1e8449, #48c67d);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 22px rgba(39, 174, 96, 0.7);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px; /* Space between buttons in a group */
+            margin-top: 15px;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+        .btn-group .btn {
+            flex: 1; /* Distribute space evenly */
+            min-width: 120px; /* Minimum width before wrapping */
+            margin: 0; /* Override individual button margin */
+        }
+
+        /* --- Info Display --- */
+        .info-display {
+            background: rgba(0, 0, 0, 0.6); /* Slightly darker, more prominent */
+            border-radius: 12px;
+            padding: 22px; /* More padding */
+            margin: 15px 0;
+            border-left: 6px solid var(--color-info); /* Thicker border */
+            box-shadow: inset 0 0 12px rgba(0, 255, 255, 0.4);
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center; /* Align text vertically */
+            margin: 12px 0; /* More spacing */
+            font-size: 16px;
+            border-bottom: 1px dotted rgba(255, 255, 255, 0.15);
+            padding-bottom: 8px;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            color: #c0c0c0; /* Softer color for labels */
+            font-weight: normal;
+        }
+
+        .info-value {
+            font-weight: bold;
+            color: var(--color-info);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+            letter-spacing: 0.5px;
+        }
+
+        /* --- Fuel Gauge --- */
+        .fuel-gauge-container {
+            width: 100%;
+            height: 28px; /* Taller gauge */
+            background-color: rgba(0,0,0,0.6);
+            border-radius: 14px;
+            border: 1px solid var(--color-info);
+            overflow: hidden;
+            margin-top: 12px;
+            position: relative;
+            box-shadow: inset 0 0 6px var(--color-info);
+        }
+
+        #fuelGauge {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71); /* Multi-color gradient */
+            border-radius: 14px;
+            transition: width 0.4s ease-out, background 0.4s ease-out; /* Smooth transition for color too */
+            transform-origin: left;
+        }
+        #fuelGauge.empty {
+            background: linear-gradient(90deg, #e74c3c, #c0392b); /* Red gradient when empty */
+        }
+        #fuelLabel {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 28px; /* Match height */
+            font-size: 13px;
+            color: white;
+            text-shadow: 0 0 4px black;
+            font-weight: bold;
+        }
+
+
+        /* --- Animations --- */
+        .phase {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .phase.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @keyframes fadeInHeader {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Instructions --- */
+        .instructions {
+            margin-top: 25px;
+        }
+        .instructions h3 {
+            color: var(--color-header-text);
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px var(--color-header-text);
+            font-size: 1.4em;
+            letter-spacing: 1.2px;
+        }
+        .instructions ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .instructions li {
+            margin: 12px 0;
+            padding-left: 30px; /* More space for icon */
+            position: relative;
+            font-size: 1em;
+            color: #d0d0d0; /* Slightly lighter for readability */
+        }
+        .instructions li:before {
+            content: "🚀"; /* Unicode rocket */
+            position: absolute;
+            left: 0;
+            color: var(--color-info);
+            font-size: 1.3em;
+        }
+
+        /* --- Scoreboard/Game Feedback --- */
+        #gameFeedback {
+            text-align: center;
+            margin-top: 25px; /* More margin */
+            font-size: 1.6em;
+            font-weight: bold;
+            color: var(--color-success);
+            text-shadow: 0 0 15px rgba(46, 204, 113, 0.7);
+            min-height: 35px; /* Ensure space even when empty */
+        }
+
+        #starRating {
+            margin-top: 15px;
+            font-size: 3em; /* Larger stars */
+            color: var(--color-gold);
+            text-shadow: 0 0 18px rgba(255, 215, 0, 0.8);
+            display: none;
+            text-align: center;
+        }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 992px) {
+            .game-area {
+                grid-template-columns: 1fr; /* Stack layout on tablets */
+            }
+            .header h1 {
+                font-size: 2.5em;
+            }
+            .control-panel, .canvas-container, .header, .instructions {
+                padding: 20px; /* Slightly less padding */
+            }
+            .info-item {
+                font-size: 15px;
+            }
+            .btn {
+                padding: 12px;
+                font-size: 14px;
+            }
+            .btn-group {
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                margin: 15px auto;
+                padding: 15px;
+            }
+            .header h1 {
+                font-size: 1.8em;
+                margin-bottom: 10px;
+            }
+            .header p {
+                font-size: 1em;
+            }
+            .panel {
+                border-radius: 15px;
+                padding: 15px;
+            }
+            .control-section h3, .instructions h3 {
+                font-size: 1.2em;
+                margin-bottom: 12px;
+            }
+            .btn {
+                padding: 10px;
+                font-size: 12px;
+                letter-spacing: 1.2px;
+            }
+            .btn-group {
+                flex-direction: column; /* Stack buttons vertically on small screens */
+                gap: 5px;
+            }
+            .info-item {
+                font-size: 13px;
+                margin: 8px 0;
+                padding-bottom: 5px;
+            }
+            .fuel-gauge-container {
+                height: 24px;
+                border-radius: 12px;
+            }
+            #fuelLabel {
+                line-height: 24px;
+                font-size: 11px;
+            }
+            #gameCanvas {
+                height: 400px; /* Shorter canvas on mobile */
+            }
+            .instructions li {
+                font-size: 0.9em;
+                padding-left: 25px;
+            }
+            .instructions li:before {
+                font-size: 1.1em;
+            }
+            #gameFeedback {
+                font-size: 1.2em;
+            }
+            #starRating {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-gradient"></div>
+    <div id="stars"></div>
+    
+    <div class="container">
+        <div class="header panel phase">
+            <h1>🌟 TSP Navigator: The Cosmic Challenge 🌟</h1>
+            <p>Plot your flight path and find the shortest route through all stellar cities!</p>
+        </div>
+
+        <div class="game-area phase">
+            <div class="canvas-container panel">
+                <canvas id="gameCanvas"></canvas>
+            </div>
+            
+            <div class="control-panel panel">
+                <div class="control-section">
+                    <h3>🎮 Navigation Controls</h3>
+                    <button class="btn btn-primary" id="resetRouteBtn">Reset My Route</button>
+                    <button class="btn btn-secondary" id="undoLastMoveBtn">Undo Last Move</button>
+                    <button class="btn btn-success" id="submitRouteBtn">Submit My Route</button>
+                    <button class="btn btn-primary" id="showOptimalBtn">Show Optimal Route</button>
+                </div>
+
+                <div class="control-section">
+                    <h3>🌌 Stellar Map</h3>
+                    <button class="btn btn-secondary" id="clearCitiesBtn">Clear All Cities</button>
+                    <button class="btn btn-primary" id="randomCitiesBtn">New Random Cities (Default 8)</button>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="random5CitiesBtn">5 Stars</button>
+                        <button class="btn btn-primary" id="random8CitiesBtn">8 Stars</button>
+                        <button class="btn btn-primary" id="random12CitiesBtn">12 Stars</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>📊 Mission Briefing</h3>
+                    <div class="info-display">
+                        <div class="info-item">
+                            <span class="info-label">Cities Discovered:</span>
+                            <span class="info-value" id="cityCount">0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">My Path Length:</span>
+                            <span class="info-value" id="playerDistance">0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Optimal Path:</span>
+                            <span class="info-value" id="bestDistance">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Current Goal:</span>
+                            <span class="info-value" id="goalMessage">Plot a path!</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Fuel Remaining:</span>
+                            <div class="fuel-gauge-container">
+                                <div id="fuelGauge"></div>
+                                <span id="fuelLabel"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="gameFeedback"></div>
+        <div id="starRating"></div>
+
+        <div class="instructions panel phase">
+            <h3>🎯 Mission Objectives</h3>
+            <ul>
+                <li>🚀 **Click on the nebula** to establish new star cities.</li>
+                <li>⭐ **Click on cities in sequence** to plot your navigation route. Click the first city again to complete the loop.</li>
+                <li>⛽ **Watch your fuel!** Each jump consumes fuel. Reach all cities and close the loop before running out!</li>
+                <li>✅ **"Submit My Route"** to see how your path compares to the supercomputer's optimal solution.</li>
+                <li>🧠 **"Show Optimal Route"** reveals the shortest path found by the algorithm. (Note: For >8 cities, this uses a faster, but not always optimal, approximation).</li>
+                <li>🔄 Use **"Reset My Route"** to clear your path and try again. Use **"Undo Last Move"** for small corrections.</li>
+                <li>✨ Earn **star ratings** based on how close your path is to the optimal!</li>
+            </ul>
+        </div>
+    </div>
+
+    <audio id="cityClickSound" src="sounds/click.mp3" preload="auto"></audio>
+    <audio id="fuelWarningSound" src="sounds/warning.mp3" preload="auto"></audio>
+    <audio id="successChimeSound" src="sounds/success.mp3" preload="auto"></audio>
+    <audio id="gameOverSound" src="sounds/gameover.mp3" preload="auto"></audio>
+
+    <script>
+        // --- Animated Stars Background ---
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const numStars = 200; // More stars for a richer background
+            for (let i = 0; i < numStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = star.style.height = (Math.random() * 3 + 1) + 'px'; // Vary star size
+                star.style.animationDelay = Math.random() * 5 + 's';
+                star.style.animationDuration = (Math.random() * 4 + 3) + 's'; // Vary twinkle speed
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // --- TSP Game Logic ---
+        class TSPGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.cities = [];
+                this.playerRoute = []; // Stores indices of cities in player's path
+                this.optimalRoute = [];
+                this.optimalDistance = Infinity;
+                this.playerDistance = 0;
+                this.currentHoverCity = null; // For hover effect on cities
+                this.animationFrameId = null; // To manage animations for line drawing
+                this.cityAnimationIds = new Map(); // To manage multiple city warp-in animations
+
+                // Fuel System
+                this.maxFuel = 1000;
+                this.currentFuel = this.maxFuel;
+                this.fuelConsumptionPerUnitDistance = 0.5; // Adjust this value for difficulty (lower is easier)
+                this.fuelWarningPlayed = false; // To prevent spamming warning sound
+
+                // Audio elements
+                this.audio = {
+                    cityClick: document.getElementById('cityClickSound'),
+                    fuelWarning: document.getElementById('fuelWarningSound'),
+                    successChime: document.getElementById('successChimeSound'),
+                    gameOver: document.getElementById('gameOverSound')
+                };
+
+                this.setupCanvas();
+                this.bindEvents();
+                this.updateStats();
+                this.draw(); // Initial draw
+            }
+
+            setupCanvas() {
+                const rect = this.canvas.getBoundingClientRect();
+                this.canvas.width = rect.width;
+                this.canvas.height = rect.height;
+                const dpr = window.devicePixelRatio || 1;
+                this.canvas.width *= dpr;
+                this.canvas.height *= dpr;
+                this.ctx.scale(dpr, dpr);
+                this.canvas.style.width = rect.width + 'px';
+                this.canvas.style.height = rect.height + 'px';
+            }
+
+            bindEvents() {
+                this.canvas.addEventListener('click', this.handleCanvasClick.bind(this));
+                this.canvas.addEventListener('mousemove', this.handleCanvasMouseMove.bind(this));
+                window.addEventListener('resize', this.handleResize.bind(this));
+
+                // Bind buttons using their IDs (safer than onclick in HTML)
+                document.getElementById('resetRouteBtn').addEventListener('click', this.resetPlayerRoute.bind(this));
+                document.getElementById('undoLastMoveBtn').addEventListener('click', this.undoLastMove.bind(this)); // New undo button
+                document.getElementById('submitRouteBtn').addEventListener('click', this.submitPlayerRoute.bind(this));
+                document.getElementById('showOptimalBtn').addEventListener('click', this.solveTSP.bind(this));
+                document.getElementById('clearCitiesBtn').addEventListener('click', this.clearCities.bind(this));
+                document.getElementById('randomCitiesBtn').addEventListener('click', () => this.generateRandomCities()); // Default count
+                document.getElementById('random5CitiesBtn').addEventListener('click', () => this.generateRandomCities(5));
+                document.getElementById('random8CitiesBtn').addEventListener('click', () => this.generateRandomCities(8));
+                document.getElementById('random12CitiesBtn').addEventListener('click', () => this.generateRandomCities(12));
+            }
+
+            handleCanvasClick(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                let clickedCityIndex = -1;
+                for (let i = 0; i < this.cities.length; i++) {
+                    const city = this.cities[i];
+                    const distance = Math.sqrt(Math.pow(mouseX - city.x, 2) + Math.pow(mouseY - city.y, 2));
+                    if (distance <= 15) { // City radius for clicking
+                        clickedCityIndex = i;
+                        break;
+                    }
+                }
+
+                if (clickedCityIndex !== -1) {
+                    this.addCityToPlayerRoute(clickedCityIndex);
+                    this.audio.cityClick.play();
+                } else {
+                    this.addCity(mouseX, mouseY);
+                }
+            }
+
+            handleCanvasMouseMove(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                let hoverCityFound = false;
+
+                for (let i = 0; i < this.cities.length; i++) {
+                    const city = this.cities[i];
+                    const distance = Math.sqrt(Math.pow(mouseX - city.x, 2) + Math.pow(mouseY - city.y, 2));
+                    if (distance <= 15) {
+                        if (this.currentHoverCity !== i) {
+                            this.currentHoverCity = i;
+                            this.draw(); // Redraw to show hover effect
+                        }
+                        hoverCityFound = true;
+                        break;
+                    }
+                }
+                if (!hoverCityFound && this.currentHoverCity !== null) {
+                    this.currentHoverCity = null;
+                    this.draw(); // Redraw to remove hover effect
+                }
+            }
+
+            handleResize() {
+                this.setupCanvas();
+                this.draw();
+            }
+
+            // Function to draw different city "stickers"
+            drawCityIcon(ctx, city, radius, alpha = 1) {
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = city.color || '#fff'; // Use predefined color or default
+                
+                // Add a pulsating glow for visited cities in player route
+                if (this.playerRoute.includes(city.id) && city.animationProgress >= 1) {
+                    const glowPulse = Math.sin(performance.now() / 200) * 2 + 3; // Pulsate between 1 and 5
+                    ctx.shadowColor = city.color || '#00ffff';
+                    ctx.shadowBlur = glowPulse;
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+
+                switch (city.type) {
+                    case 'planet':
+                        ctx.beginPath();
+                        ctx.arc(city.x, city.y, radius, 0, Math.PI * 2);
+                        ctx.fill();
+                        if (city.id % 3 === 0 && radius > 10) { // Add rings for larger planets
+                            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
+                            ctx.lineWidth = 1.5;
+                            ctx.beginPath();
+                            ctx.ellipse(city.x, city.y, radius * 1.5, radius * 0.5, Math.PI / 4, 0, Math.PI * 2);
+                            ctx.stroke();
+                        }
+                        break;
+                    case 'star':
+                        // Simple 4-point star (diamond)
+                        ctx.beginPath();
+                        ctx.moveTo(city.x, city.y - radius);
+                        ctx.lineTo(city.x + radius * 0.6, city.y);
+                        ctx.lineTo(city.x, city.y + radius);
+                        ctx.lineTo(city.x - radius * 0.6, city.y);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                    case 'nebula':
+                        // A more abstract, cloud-like shape
+                        ctx.beginPath();
+                        ctx.arc(city.x, city.y, radius * 0.8, 0, Math.PI * 2);
+                        ctx.arc(city.x + radius * 0.5, city.y - radius * 0.3, radius * 0.6, 0, Math.PI * 2);
+                        ctx.arc(city.x - radius * 0.5, city.y + radius * 0.3, radius * 0.7, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                    default: // Default to a simple circle
+                        ctx.beginPath();
+                        ctx.arc(city.x, city.y, radius, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                }
+                ctx.restore();
+            }
+
+            addCity(x, y) {
+                const cityTypes = ['planet', 'star', 'nebula'];
+                const cityColors = ['#87ceeb', '#FFD700', '#FF6347', '#9370DB', '#7CFC00']; // Blue, Gold, Red, Purple, Green
+                const newCity = { 
+                    x, y, 
+                    id: this.cities.length,
+                    type: cityTypes[Math.floor(Math.random() * cityTypes.length)],
+                    color: cityColors[Math.floor(Math.random() * cityColors.length)],
+                    animationProgress: 0 // For warp-in animation
+                };
+                this.cities.push(newCity);
+                this.resetGameState(); // Reset game state for new city addition
+                
+                this.animateCityIn(newCity); // Start warp-in animation
+                this.updateStats();
+            }
+
+            animateCityIn(city) {
+                const duration = 500; // ms
+                const startTime = performance.now();
+                
+                const animate = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    city.animationProgress = Math.min(1, elapsed / duration);
+                    this.draw(); // Redraw canvas in each frame
+                    if (city.animationProgress < 1) {
+                        this.cityAnimationIds.set(city.id, requestAnimationFrame(animate));
+                    } else {
+                        this.cityAnimationIds.delete(city.id); // Animation complete
+                    }
+                };
+                // Ensure no previous animation is running for this city
+                if (this.cityAnimationIds.has(city.id)) {
+                    cancelAnimationFrame(this.cityAnimationIds.get(city.id));
+                }
+                this.cityAnimationIds.set(city.id, requestAnimationFrame(animate));
+            }
+
+            addCityToPlayerRoute(cityIndex) {
+                if (this.currentFuel <= 0) {
+                    document.getElementById('gameFeedback').textContent = 'Mission Failed: Out of Fuel!';
+                    document.getElementById('gameFeedback').style.color = '#e74c3c';
+                    this.audio.gameOver.play();
+                    return;
+                }
+                
+                const uniqueCitiesVisited = new Set(this.playerRoute).size;
+
+                // If adding the very first city
+                if (this.playerRoute.length === 0) {
+                    this.playerRoute.push(cityIndex);
+                    this.updateStats();
+                    this.draw();
+                    document.getElementById('gameFeedback').textContent = '';
+                    document.getElementById('starRating').style.display = 'none';
+                    this.fuelWarningPlayed = false; // Reset warning for new route
+                    return;
+                }
+
+                // Check for duplicate consecutive clicks (prevent adding same city twice in a row)
+                if (this.playerRoute[this.playerRoute.length - 1] === cityIndex) {
+                    // Allow clicking first city again to close loop if all unique cities visited
+                    if (uniqueCitiesVisited === this.cities.length && this.playerRoute[0] === cityIndex) {
+                        this.submitPlayerRoute(); // Submit if closing the loop
+                    }
+                    return; // Ignore if same city clicked consecutively (unless closing loop)
+                }
+
+                const prevCityIndex = this.playerRoute[this.playerRoute.length - 1];
+                const distanceSegment = this.calculateDistance(this.cities[prevCityIndex], this.cities[cityIndex]);
+                const fuelCost = distanceSegment * this.fuelConsumptionPerUnitDistance;
+
+                if (this.currentFuel - fuelCost < 0) {
+                    document.getElementById('gameFeedback').textContent = 'Not enough fuel for this jump! ⚠️';
+                    document.getElementById('gameFeedback').style.color = '#f39c12'; // Orange warning
+                    if (!this.fuelWarningPlayed) {
+                        this.audio.fuelWarning.play();
+                        this.fuelWarningPlayed = true;
+                    }
+                    return;
+                }
+
+                this.currentFuel -= fuelCost;
+                this.playerRoute.push(cityIndex);
+                this.playerDistance += distanceSegment;
+
+                this.updateStats();
+                this.animateLine(prevCityIndex, cityIndex);
+                document.getElementById('gameFeedback').textContent = '';
+                document.getElementById('starRating').style.display = 'none';
+                this.fuelWarningPlayed = false; // Reset warning once fuel is consumed
+            }
+
+            animateLine(fromCityIndex, toCityIndex) {
+                const city1 = this.cities[fromCityIndex];
+                const city2 = this.cities[toCityIndex];
+                const duration = 300; // milliseconds
+                const startTime = performance.now();
+
+                const animate = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(1, elapsed / duration);
+
+                    this.draw(); // Clear and redraw everything
+
+                    this.ctx.strokeStyle = '#00ffff'; // Player route color
+                    this.ctx.lineWidth = 3;
+                    this.ctx.setLineDash([]);
+                    this.ctx.beginPath();
+
+                    // Redraw all completed segments of player route
+                    for (let i = 0; i < this.playerRoute.length - 1; i++) {
+                        const p1 = this.cities[this.playerRoute[i]];
+                        const p2 = this.cities[this.playerRoute[i+1]];
+                        this.ctx.moveTo(p1.x, p1.y);
+                        this.ctx.lineTo(p2.x, p2.y);
+                    }
+                    this.ctx.stroke(); // Draw completed segments first
+
+                    // Now draw the animating segment
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(city1.x, city1.y);
+                    const currentX = city1.x + (city2.x - city1.x) * progress;
+                    const currentY = city1.y + (city2.y - city1.y) * progress;
+                    this.ctx.lineTo(currentX, currentY);
+                    this.ctx.stroke();
+
+
+                    if (progress < 1) {
+                        this.animationFrameId = requestAnimationFrame(animate);
+                    } else {
+                        this.animationFrameId = null; // Animation finished
+                    }
+                };
+                // Cancel any ongoing line animations before starting a new one
+                if (this.animationFrameId) {
+                    cancelAnimationFrame(this.animationFrameId);
+                }
+                this.animationFrameId = requestAnimationFrame(animate);
+            }
+
+            resetGameState() {
+                // Cancel all ongoing animations
+                if (this.animationFrameId) {
+                    cancelAnimationFrame(this.animationFrameId);
+                    this.animationFrameId = null;
+                }
+                this.cityAnimationIds.forEach(id => cancelAnimationFrame(id));
+                this.cityAnimationIds.clear();
+
+                this.playerRoute = [];
+                this.playerDistance = 0;
+                this.currentFuel = this.maxFuel; // Reset fuel on game state clear/reset
+                this.optimalRoute = [];
+                this.optimalDistance = Infinity;
+                document.getElementById('gameFeedback').textContent = '';
+                document.getElementById('starRating').style.display = 'none';
+                document.getElementById('gameFeedback').style.color = 'var(--color-success)'; // Reset feedback color
+                this.fuelWarningPlayed = false;
+            }
+
+            resetPlayerRoute() {
+                this.resetGameState();
+                this.draw(); // Redraw with cleared state
+                this.updateStats();
+            }
+
+            // New: Undo Last Move functionality
+            undoLastMove() {
+                if (this.playerRoute.length < 2) { // Need at least one segment to undo
+                    document.getElementById('gameFeedback').textContent = 'Nothing to undo!';
+                    document.getElementById('gameFeedback').style.color = 'var(--color-warning)';
+                    return;
+                }
+
+                // If the last move closed the loop, remove the duplicate start city first
+                if (this.playerRoute.length > 0 && this.playerRoute[0] === this.playerRoute[this.playerRoute.length - 1]) {
+                    this.playerRoute.pop(); // Remove the closing city
+                    // Re-calculate distance *before* removing the actual last segment
+                    this.playerDistance = this.calculateRouteDistance(this.playerRoute, false); 
+                    this.currentFuel = this.maxFuel; // Fuel resets on closing loop
+                }
+                
+                // Now remove the actual last segment
+                const removedCityIndex = this.playerRoute.pop();
+                
+                if (this.playerRoute.length > 0) {
+                    const prevCityIndex = this.playerRoute[this.playerRoute.length - 1];
+                    const segmentDistance = this.calculateDistance(this.cities[prevCityIndex], this.cities[removedCityIndex]);
+                    this.playerDistance -= segmentDistance;
+                    this.currentFuel = Math.min(this.maxFuel, this.currentFuel + (segmentDistance * this.fuelConsumptionPerUnitDistance));
+                } else {
+                    // If route is now empty after undoing
+                    this.playerDistance = 0;
+                    this.currentFuel = this.maxFuel;
+                }
+
+                // Reset feedback messages that might be lingering
+                document.getElementById('gameFeedback').textContent = '';
+                document.getElementById('starRating').style.display = 'none';
+                this.fuelWarningPlayed = false;
+
+                this.updateStats();
+                this.draw(); // Redraw the new shorter path
+            }
+
+
+            submitPlayerRoute() {
+                if (this.cities.length < 2) {
+                    document.getElementById('gameFeedback').textContent = 'Need at least 2 cities to submit a route!';
+                    document.getElementById('gameFeedback').style.color = 'var(--color-warning)';
+                    return;
+                }
+                const uniqueCitiesVisited = new Set(this.playerRoute).size;
+                if (uniqueCitiesVisited !== this.cities.length) {
+                    document.getElementById('gameFeedback').textContent = 'Visit all cities before submitting!';
+                    document.getElementById('gameFeedback').style.color = 'var(--color-warning)';
+                    return;
+                }
+                // Ensure the route is a full cycle (ends back at start)
+                if (this.playerRoute[0] !== this.playerRoute[this.playerRoute.length - 1]) {
+                     // Add the first city to close the loop for final calculation
+                     this.playerRoute.push(this.playerRoute[0]);
+                     this.playerDistance = this.calculateRouteDistance(this.playerRoute, false); // Calculate with added segment
+                     
+                     // Animate the closing line
+                     this.animateLine(this.playerRoute[this.playerRoute.length - 2], this.playerRoute[this.playerRoute.length - 1]);
+                     
+                     // Delay solving and feedback until closing animation finishes
+                     setTimeout(() => {
+                        this.solveTSP(false); // Calculate optimal without redrawing it yet
+                        this.updateStats();
+                        this.giveFeedback();
+                        this.draw(); // Final draw including player's full route
+                        this.audio.successChime.play();
+                     }, 350); // Slightly longer than line animation
+                } else {
+                    this.playerDistance = this.calculateRouteDistance(this.playerRoute, false); // Already closed
+                    this.solveTSP(false); // Calculate optimal without redrawing it yet
+                    this.updateStats();
+                    this.draw(); // Redraw with final player route
+                    this.giveFeedback();
+                    this.audio.successChime.play();
+                }
+            }
+
+            giveFeedback() {
+                const feedbackDiv = document.getElementById('gameFeedback');
+                const starRatingDiv = document.getElementById('starRating');
+                starRatingDiv.style.display = 'block';
+
+                if (this.optimalDistance === Infinity || this.optimalDistance === 0) {
+                    feedbackDiv.textContent = 'Please show optimal route for comparison!';
+                    feedbackDiv.style.color = 'var(--color-warning)';
+                    starRatingDiv.textContent = '';
+                    return;
+                }
+                if (this.currentFuel <= 0 && new Set(this.playerRoute).size < this.cities.length) {
+                    feedbackDiv.textContent = 'Mission Failed: Out of Fuel! 💥';
+                    starRatingDiv.textContent = '💀'; // Skull or similar for failure
+                    feedbackDiv.style.color = 'var(--color-secondary)'; // Red for failure
+                    this.audio.gameOver.play();
+                    return;
+                }
+                if (this.currentFuel <= 0 && new Set(this.playerRoute).size === this.cities.length && this.playerRoute[0] === this.playerRoute[this.playerRoute.length-1]) {
+                    feedbackDiv.textContent = 'Mission Complete! But barely made it on fuel! ⛽';
+                    starRatingDiv.textContent = '✅';
+                    feedbackDiv.style.color = 'var(--color-warning)'; // Yellow/orange for close call
+                }
+
+                // If not failed by fuel, then evaluate distance
+                const playerRatio = this.playerDistance / this.optimalDistance;
+
+                if (playerRatio <= 1.0001) { // Adding a small epsilon for floating point comparison
+                    feedbackDiv.textContent = '🚀 Perfect Navigation! You found the optimal path!';
+                    starRatingDiv.textContent = '🌟🌟🌟';
+                    feedbackDiv.style.color = 'var(--color-success)';
+                } else if (playerRatio <= 1.15) { // Within 15% of optimal
+                    feedbackDiv.textContent = '✨ Excellent Pilot! A near-optimal path!';
+                    starRatingDiv.textContent = '🌟🌟';
+                    feedbackDiv.style.color = 'var(--color-success)';
+                } else if (playerRatio <= 1.30) { // Within 30% of optimal
+                    feedbackDiv.textContent = '⭐ Good Effort! You\'re getting closer!';
+                    starRatingDiv.textContent = '🌟';
+                    feedbackDiv.style.color = 'var(--color-success)';
+                } else {
+                    feedbackDiv.textContent = 'Keep Exploring! Try to find a shorter route.';
+                    starRatingDiv.textContent = '😔';
+                    feedbackDiv.style.color = 'var(--color-warning)';
+                }
+            }
+
+            clearCities() {
+                this.resetGameState(); // Clear existing cities and reset state
+                this.cities = [];
+                this.updateStats();
+                this.draw();
+            }
+
+            generateRandomCities(count = 8) {
+                this.clearCities(); // Clear existing cities and reset state
+                const margin = 50;
+                const width = this.canvas.offsetWidth - 2 * margin;
+                const height = this.canvas.offsetHeight - 2 * margin;
+
+                const cityTypes = ['planet', 'star', 'nebula'];
+                const cityColors = ['#87ceeb', '#FFD700', '#FF6347', '#9370DB', '#7CFC00'];
+
+                let newCities = [];
+                for (let i = 0; i < count; i++) {
+                    // Ensure cities are not too close to each other
+                    let x, y, tooClose;
+                    let attempts = 0;
+                    do {
+                        x = margin + Math.random() * width;
+                        y = margin + Math.random() * height;
+                        tooClose = false;
+                        for (let j = 0; j < newCities.length; j++) {
+                            const existingCity = newCities[j];
+                            const distance = Math.sqrt(Math.pow(x - existingCity.x, 2) + Math.pow(y - existingCity.y, 2));
+                            if (distance < 50) { // Minimum distance between cities
+                                tooClose = true;
+                                break;
+                            }
+                        }
+                        attempts++;
+                    } while (tooClose && attempts < 100); // Prevent infinite loop on small canvas
+                    
+                    newCities.push({ 
+                        x, y, 
+                        id: i,
+                        type: cityTypes[Math.floor(Math.random() * cityTypes.length)],
+                        color: cityColors[Math.floor(Math.random() * cityColors.length)],
+                        animationProgress: 0
+                    });
+                }
+                this.cities = newCities;
+                this.cities.forEach(city => this.animateCityIn(city)); // Animate all in
+                this.updateStats();
+            }
+
+            calculateDistance(city1, city2) {
+                const dx = city1.x - city2.x;
+                const dy = city1.y - city2.y;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            calculateRouteDistance(routeIndices, loop = true) {
+                if (routeIndices.length < 2) return 0;
+                
+                let distance = 0;
+                for (let i = 0; i < routeIndices.length - 1; i++) {
+                    distance += this.calculateDistance(this.cities[routeIndices[i]], this.cities[routeIndices[i + 1]]);
+                }
+                // If looping, add distance back to start
+                if (loop && routeIndices.length > 0) {
+                    distance += this.calculateDistance(this.cities[routeIndices[routeIndices.length - 1]], this.cities[routeIndices[0]]);
+                }
+                return distance;
+            }
+
+            // Nearest Neighbor Heuristic (Fast, but not always optimal)
+            nearestNeighborTSP() {
+                if (this.cities.length < 2) return [];
+
+                const unvisited = new Set(Array.from({ length: this.cities.length }, (_, i) => i));
+                const route = [];
+                let currentCityIndex = 0; // Start at city 0
+
+                route.push(currentCityIndex);
+                unvisited.delete(currentCityIndex);
+
+                while (unvisited.size > 0) {
+                    let nearest = -1;
+                    let nearestDistance = Infinity;
+
+                    for (const cityIndex of unvisited) {
+                        const distance = this.calculateDistance(this.cities[currentCityIndex], this.cities[cityIndex]);
+                        if (distance < nearestDistance) {
+                            nearestDistance = distance;
+                            nearest = cityIndex;
+                        }
+                    }
+                    route.push(nearest);
+                    unvisited.delete(nearest);
+                    currentCityIndex = nearest;
+                }
+                return route;
+            }
+            
+            // Brute Force TSP (Guarantees optimal, but extremely slow for N > ~10)
+            bruteForceTSP() {
+                const numCities = this.cities.length;
+                if (numCities < 2) return [];
+                // IMPORTANT: Limit brute force to prevent browser freezing
+                if (numCities > 8) { 
+                    console.warn(`Brute force is too slow for ${numCities} cities. Using Nearest Neighbor approximation.`);
+                    return this.nearestNeighborTSP();
+                }
+
+                let smallestDistance = Infinity;
+                let bestPermutation = [];
+
+                const swap = (arr, i, j) => {
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                };
+
+                const permute = (arr, l, r) => {
+                    if (l === r) {
+                        const currentDistance = this.calculateRouteDistance(arr, true);
+                        if (currentDistance < smallestDistance) {
+                            smallestDistance = currentDistance;
+                            bestPermutation = [...arr];
+                        }
+                    } else {
+                        for (let i = l; i <= r; i++) {
+                            swap(arr, l, i);
+                            permute(arr, l + 1, r);
+                            swap(arr, l, i); // Backtrack
+                        }
+                    }
+                };
+
+                const initialPermutation = Array.from({ length: numCities }, (_, i) => i);
+                permute(initialPermutation, 0, numCities - 1);
+                
+                return bestPermutation;
+            }
+
+            solveTSP(showRouteImmediately = true) {
+                if (this.cities.length < 2) {
+                    document.getElementById('gameFeedback').textContent = 'Add more cities to find an optimal route!';
+                    document.getElementById('gameFeedback').style.color = 'var(--color-warning)';
+                    return;
+                }
+                document.getElementById('gameFeedback').textContent = 'Calculating optimal route...';
+                document.getElementById('gameFeedback').style.color = 'var(--color-info)';
+
+                // Give a small delay to show "Calculating..." message
+                setTimeout(() => {
+                    const route = this.cities.length <= 8 ? this.bruteForceTSP() : this.nearestNeighborTSP();
+                    
+                    this.optimalDistance = this.calculateRouteDistance(route, true);
+                    this.optimalRoute = route;
+
+                    this.updateStats();
+                    if(showRouteImmediately) {
+                        this.draw();
+                        document.getElementById('gameFeedback').textContent = 'Optimal route displayed!';
+                        document.getElementById('gameFeedback').style.color = 'var(--color-success)';
+                    }
+                }, 50); // Small delay
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Draw optimal route (if exists)
+                if (this.optimalRoute.length > 1 && this.optimalDistance < Infinity) {
+                    this.ctx.strokeStyle = 'var(--color-gold)'; // Gold color for optimal
+                    this.ctx.lineWidth = 4;
+                    this.ctx.setLineDash([8, 8]); // Dashed line for optimal
+                    this.ctx.beginPath();
+                    for (let i = 0; i < this.optimalRoute.length; i++) {
+                        const city = this.cities[this.optimalRoute[i]];
+                        if (i === 0) {
+                            this.ctx.moveTo(city.x, city.y);
+                        } else {
+                            this.ctx.lineTo(city.x, city.y);
+                        }
+                    }
+                    if (this.optimalRoute.length > 0) {
+                        const firstCity = this.cities[this.optimalRoute[0]];
+                        this.ctx.lineTo(firstCity.x, firstCity.y); // Close loop
+                    }
+                    this.ctx.stroke();
+                }
+                
+                // Draw player's current route (non-animating parts)
+                if (this.playerRoute.length > 1) {
+                    this.ctx.strokeStyle = 'var(--color-info)'; // Cyan for player's route
+                    this.ctx.lineWidth = 3;
+                    this.ctx.setLineDash([]); // Solid line for player
+                    this.ctx.beginPath();
+                    for (let i = 0; i < this.playerRoute.length; i++) {
+                        const city = this.cities[this.playerRoute[i]];
+                        if (i === 0) {
+                            this.ctx.moveTo(city.x, city.y);
+                        } else {
+                            this.ctx.lineTo(city.x, city.y);
+                        }
+                    }
+                    // If all unique cities visited and not yet explicitly closed, draw a potential closing line
+                    const uniqueCitiesVisited = new Set(this.playerRoute.slice(0, -1)).size; // Exclude last city if it's the closing one
+                    if (uniqueCitiesVisited === this.cities.length && this.playerRoute.length > 0 && this.playerRoute[0] !== this.playerRoute[this.playerRoute.length - 1]) {
+                         const firstCity = this.cities[this.playerRoute[0]];
+                         this.ctx.lineTo(firstCity.x, firstCity.y);
+                    }
+                    this.ctx.stroke();
+
+                    // Draw direction arrows for player route
+                    this.drawDirectionArrows(this.playerRoute, 'var(--color-info)');
+                }
+
+                // Draw cities
+                this.cities.forEach((city, index) => {
+                    // City glow and animation
+                    const baseRadius = 15;
+                    const animatedRadius = baseRadius * city.animationProgress;
+                    const animatedAlpha = city.animationProgress;
+
+                    const radius = (this.currentHoverCity === index) ? (animatedRadius * 1.2) : animatedRadius;
+                    
+                    const glowGradient = this.ctx.createRadialGradient(city.x, city.y, 0, city.x, city.y, radius + 5);
+                    glowGradient.addColorStop(0, `rgba(255, 255, 255, ${animatedAlpha * 0.9})`);
+                    glowGradient.addColorStop(0.7, (this.currentHoverCity === index) ? `rgba(0, 255, 255, ${animatedAlpha})` : `rgba(135, 206, 235, ${animatedAlpha})`);
+                    glowGradient.addColorStop(1, 'transparent');
+                    
+                    this.ctx.fillStyle = glowGradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(city.x, city.y, radius + 5, 0, 2 * Math.PI); // Larger outer glow
+                    this.ctx.fill();
+
+                    // Draw the themed city icon
+                    this.drawCityIcon(this.ctx, city, radius, animatedAlpha);
+                    
+                    // City number (only if visible enough)
+                    if (city.animationProgress > 0.8) {
+                        this.ctx.fillStyle = '#000';
+                        this.ctx.font = 'bold 13px Orbitron'; /* Font for city numbers */
+                        this.ctx.textAlign = 'center';
+                        this.ctx.textBaseline = 'middle';
+                        this.ctx.fillText((index + 1).toString(), city.x, city.y);
+                    }
+                });
+
+                // Request animation frame for continuous hover effects/visited city glow
+                if (this.currentHoverCity !== null || this.playerRoute.some(id => this.cities[id].animationProgress >= 1) || this.animationFrameId !== null) {
+                    requestAnimationFrame(this.draw.bind(this));
+                }
+            }
+
+            drawDirectionArrows(routeIndices, color) {
+                if (routeIndices.length < 2) return;
+
+                this.ctx.fillStyle = color;
+                this.ctx.strokeStyle = color;
+                this.ctx.lineWidth = 2;
+
+                // Determine segments to draw arrows for
+                const segments = [];
+                for (let i = 0; i < routeIndices.length - 1; i++) {
+                    segments.push({ from: routeIndices[i], to: routeIndices[i+1] });
+                }
+                // If the route is a complete loop (first city clicked again as last), ensure the closing segment gets an arrow
+                if (routeIndices.length > 0 && routeIndices[0] === routeIndices[routeIndices.length - 1] && routeIndices.length > 1) {
+                    // Check if the closing segment wasn't already included in the first loop
+                    const lastUniqueCityIndex = routeIndices[routeIndices.length - 2];
+                    const firstCityIndex = routeIndices[0];
+                    if (lastUniqueCityIndex !== firstCityIndex) { // Avoid double arrow if route is just 2 cities, a->b, then b->a (first)
+                        // This check makes sure the last segment (e.g. city C to city A in A->B->C->A) is drawn
+                    }
+                }
+                
+                // Filter for unique segments to avoid redundant arrows if route repeats
+                const drawnSegments = new Set();
+
+                segments.forEach(segment => {
+                    const fromCity = this.cities[segment.from];
+                    const toCity = this.cities[segment.to];
+
+                    const dx = toCity.x - fromCity.x;
+                    const dy = toCity.y - fromCity.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance > 30) { // Only draw arrow if segment is long enough
+                        const midX = fromCity.x + dx * 0.5; // Midpoint for arrow
+                        const midY = fromCity.y + dy * 0.5;
+
+                        const angle = Math.atan2(dy, dx);
+                        const arrowLength = 10;
+                        const arrowAngle = 0.5; // Angle of arrow head "wings"
+
+                        // Draw arrow head
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(midX, midY);
+                        this.ctx.lineTo(
+                            midX - arrowLength * Math.cos(angle - arrowAngle),
+                            midY - arrowLength * Math.sin(angle - arrowAngle)
+                        );
+                        this.ctx.moveTo(midX, midY);
+                        this.ctx.lineTo(
+                            midX - arrowLength * Math.cos(angle + arrowAngle),
+                            midY - arrowLength * Math.sin(angle + arrowAngle)
+                        );
+                        this.ctx.stroke();
+                    }
+                });
+            }
+
+            updateStats() {
+                document.getElementById('cityCount').textContent = this.cities.length;
+                document.getElementById('playerDistance').textContent =
+                    this.playerDistance > 0 ? Math.round(this.playerDistance) : '0';
+                document.getElementById('bestDistance').textContent =
+                    this.optimalDistance < Infinity ? Math.round(this.optimalDistance) : '-';
+                
+                // Update goal message
+                const goalMessageElement = document.getElementById('goalMessage');
+                const uniqueCitiesInRoute = new Set(this.playerRoute).size;
+
+                if (this.cities.length === 0) {
+                    goalMessageElement.textContent = 'Place cities!';
+                    goalMessageElement.style.color = 'var(--color-info)';
+                } else if (this.currentFuel <= 0 && uniqueCitiesInRoute < this.cities.length) {
+                    goalMessageElement.textContent = 'Out of fuel!';
+                    goalMessageElement.style.color = 'var(--color-secondary)'; // Red for fuel failure
+                } else if (this.playerRoute.length === 0) {
+                    goalMessageElement.textContent = 'Start plotting!';
+                    goalMessageElement.style.color = 'var(--color-info)';
+                } else if (uniqueCitiesInRoute < this.cities.length) {
+                    goalMessageElement.textContent = `Visit ${this.cities.length - uniqueCitiesInRoute} more!`;
+                    goalMessageElement.style.color = 'var(--color-info)';
+                } else if (this.playerRoute[0] !== this.playerRoute[this.playerRoute.length - 1] && uniqueCitiesInRoute === this.cities.length) {
+                    goalMessageElement.textContent = 'Close the loop!';
+                    goalMessageElement.style.color = 'var(--color-info)';
+                } else {
+                    goalMessageElement.textContent = 'Submit your path!';
+                    goalMessageElement.style.color = 'var(--color-info)';
+                }
+
+                // Update Fuel Gauge
+                const fuelGauge = document.getElementById('fuelGauge');
+                const fuelLabel = document.getElementById('fuelLabel');
+                const fuelPercentage = (this.currentFuel / this.maxFuel) * 100;
+                fuelGauge.style.width = `${Math.max(0, fuelPercentage)}%`;
+                fuelLabel.textContent = `${Math.round(this.currentFuel)} / ${this.maxFuel} units`;
+
+                if (fuelPercentage <= 20) {
+                    fuelGauge.classList.add('empty');
+                    if (!this.fuelWarningPlayed && this.currentFuel > 0) { // Play only once when dropping below threshold
+                        this.audio.fuelWarning.play();
+                        this.fuelWarningPlayed = true;
+                    }
+                } else {
+                    fuelGauge.classList.remove('empty');
+                    this.fuelWarningPlayed = false; // Reset warning flag if fuel is replenished
+                }
+            }
+        }
+
+        // --- Initialize everything when page loads ---
+        document.addEventListener('DOMContentLoaded', function () {
+            createStars();
+            window.tspGame = new TSPGame();
+            
+            // Initial animation for sections
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 }); // Trigger when 10% of element is visible
+
+            document.querySelectorAll('.phase').forEach(phase => {
+                observer.observe(phase);
+            });
+
+            // Start continuous draw for hover and visited city effects
+            // This is crucial for animations and hover effects on canvas
+            function animateCanvas() {
+                if (window.tspGame) {
+                    window.tspGame.draw();
+                }
+                requestAnimationFrame(animateCanvas);
+            }
+            animateCanvas();
+        });
+    </script>
+</body>
+</html>
