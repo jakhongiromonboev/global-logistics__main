@@ -43,24 +43,61 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Subtle animated background */
-        body::before {
-            content: '';
+        /* --- Animated Space Background --- */
+        .background-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, rgba(0, 191, 255, 0.05) 0%, transparent 60%);
-            animation: subtlePulse 15s ease-in-out infinite alternate;
-            z-index: -2;
-            pointer-events: none;
+            overflow: hidden;
+            z-index: -1; /* Keep it behind all content */
+            background: radial-gradient(circle at center, #01010d 0%, #00000a 100%); /* Deep space base */
         }
 
-        @keyframes subtlePulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.03); opacity: 1; }
+        /* Stars */
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 80px, #eee, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 100px 10px, #fff, rgba(0,0,0,0));
+            background-size: 200px 200px; /* Adjust to control star density */
+            animation: moveStars 100s linear infinite; /* Slower, subtle movement */
+            opacity: 0.7; /* Keep them subtle */
         }
+
+        /* Nebula/Galaxy Effect (using pseudo-elements for gradients) */
+        .nebula {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 15% 50%, rgba(0, 100, 200, 0.08) 0%, transparent 70%),
+                radial-gradient(circle at 85% 30%, rgba(150, 0, 200, 0.08) 0%, transparent 70%),
+                radial-gradient(circle at 40% 90%, rgba(0, 200, 100, 0.08) 0%, transparent 70%);
+            animation: animateNebula 20s ease-in-out infinite alternate;
+            filter: blur(80px); /* Smooth, glowy effect */
+        }
+
+        @keyframes moveStars {
+            from { background-position: 0 0; }
+            to { background-position: 200px 200px; } /* Same size as background-size for seamless loop */
+        }
+
+        @keyframes animateNebula {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.7; }
+            50% { transform: scale(1.05) translate(10px, -10px); opacity: 0.8; }
+            100% { transform: scale(1) translate(0, 0); opacity: 0.7; }
+        }
+        /* --- End Animated Space Background --- */
+
 
         .container {
             max-width: 1000px;
@@ -68,7 +105,7 @@
             padding: 2.5rem;
             flex-grow: 1;
             position: relative;
-            z-index: 1;
+            z-index: 1; /* Ensure content is above the background */
         }
 
         /* Header Styling */
@@ -76,7 +113,8 @@
             text-align: center;
             margin-bottom: 4rem;
             padding: 3rem 1.5rem;
-            background: var(--card-bg);
+            background: rgba(26, 26, 46, 0.85); /* Slightly transparent to let background show */
+            backdrop-filter: blur(8px); /* Frosted glass effect */
             border-radius: 15px;
             border: 1px solid var(--border-color);
             box-shadow: var(--shadow-elevated);
@@ -92,7 +130,7 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(45deg, rgba(0, 191, 255, 0.1), rgba(138, 43, 226, 0.1));
-            filter: blur(50px); /* Creates a soft, glowing background */
+            filter: blur(50px);
             opacity: 0.7;
             z-index: -1;
         }
@@ -116,7 +154,8 @@
 
         /* Design Thinking Phase Cards */
         .design-phase {
-            background-color: var(--card-bg);
+            background-color: rgba(26, 26, 46, 0.8); /* Slightly more transparent than header */
+            backdrop-filter: blur(5px);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 2.5rem;
@@ -126,7 +165,7 @@
                         box-shadow var(--transition-speed) var(--bezier-ease),
                         border-color var(--transition-speed) var(--bezier-ease);
             position: relative;
-            overflow: hidden; /* For inner gradient glow */
+            overflow: hidden;
             opacity: 0; /* Initial state for JS animation */
             transform: translateY(30px); /* Initial state for JS animation */
         }
@@ -175,7 +214,7 @@
             font-weight: 700;
             font-size: 1.3rem;
             margin-right: 1.2rem;
-            color: var(--dark-bg); /* Dark text on bright circle */
+            color: var(--dark-bg);
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
         }
 
@@ -190,9 +229,9 @@
         .phase-content {
             font-size: 1.1rem;
             color: var(--text-light);
-            padding-left: 0.5rem; /* Slight indent for main content */
+            padding-left: 0.5rem;
             position: relative;
-            z-index: 1; /* Ensure text is above ::before glow */
+            z-index: 1;
         }
 
         .phase-content p {
@@ -200,20 +239,20 @@
         }
 
         .phase-content ul {
-            list-style: none; /* Remove default list style */
+            list-style: none;
             padding-left: 0;
             margin-top: 1rem;
         }
 
         .phase-content ul li {
             position: relative;
-            padding-left: 28px; /* Space for custom bullet */
+            padding-left: 28px;
             margin-bottom: 0.8rem;
             color: var(--text-muted);
         }
 
         .phase-content ul li::before {
-            content: '✨'; /* Custom bullet icon */
+            content: '✨';
             position: absolute;
             left: 0;
             color: var(--accent-purple);
@@ -322,6 +361,11 @@
     </style>
 </head>
 <body>
+    <div class="background-container">
+        <div class="stars"></div>
+        <div class="nebula"></div>
+    </div>
+
     <div class="container">
         <header>
             <h1>🌌 TSP Game: Design Thinking Process</h1>
